@@ -2,6 +2,11 @@ import sqlite3
 import warnings
 from blinker import signal
 
+class User:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
 class UserManager:
     def __init__(self):
         self.current_user = None
@@ -17,8 +22,12 @@ class UserManager:
         
         self.on_user_created = signal('user_created')
         self.on_user_deleted = signal('user_deleted')
+
         self.on_user_logged_in = signal('user_logged_in')
         self.on_user_logged_out = signal('user_logged_out')
+
+        self.on_user_change_password = signal('user_changed_password')
+        self.on_user_changed_username = signal('user_changed_username')
 
     def create_user(self, username, password = ""):
         self.usermanager_database_cursor.execute(f'SELECT (username) FROM {self.users_table_name} Where username = ?', (username,))
@@ -29,34 +38,34 @@ class UserManager:
                 if password:
                     self.usermanager_database_cursor.execute(f'INSERT INTO {self.users_table_name} VALUES (?, ?)', (username, password))
                     self.usermanager_database.commit()
-                    self.on_user_created.send(self,User(username, password))
+                    self.on_user_created.send(self, user=User(username, password))
                 else:
                     warnings.warn('called create user function with a "None" password, user not created')
         else:
             warnings.warn('called called create user function with a "None" username, user not created')
 
-    def delete_user(self, user:User):
-        if user:
-            if user.username:
-                self.usermanager_database_cursor.execute(f'DELETE FROM {self.users_table_name} WHERE username = ?', (user.username,))
+    def delete_user(self, user_to_be_deleted:User):
+        if user_to_be_deleted:
+            if user_to_be_deleted.username:
+                self.usermanager_database_cursor.execute(f'DELETE FROM {self.users_table_name} WHERE username = ?', (user_to_be_deleted.username,))
                 self.usermanager_database.commit()
-                self.on_user_deleted.send(self,user)
+                self.on_user_deleted.send(self,user=user_to_be_deleted)
             else:
                  warnings.warn('called delete_user function with "None" username, no users were deleted')
         else:
            warnings.warn('called delete_user function with "None" user, no users were deleted')
     
-    def login(self, user):
-        if user:
-            self.current_user = user
-            self.on_user_logged_in.send(self,user)
+    def login(self, user_to_login):
+        if user_to_login:
+            self.current_user = user_to_login
+            self.on_user_logged_in.send(self,user=user_to_login)
         else:
             warnings.warn("login function called with no user set, not loged in")
 
     def logout(self):
-        old_user = self.current_user 
+        user_to_be_signed_out = self.current_user 
         self.current_user = None
-        self.on_user_logged_out.send(self,old_user)
+        self.on_user_logged_out.send(self, signed_out_user=user_to_be_signed_out)
         
     def get_user(self, username):
         self.usermanager_database_cursor.execute(f'SELECT * FROM {self.users_table_name} WHERE username = ?',(username,))
@@ -76,8 +85,42 @@ class UserManager:
             users_list.append(user)
         return users_list
 
-    
-class User:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    def change_user_password(self,username, new_password):
+        self.usermanager_database_cursor.execute(f"SELECT * FROM {self.user_table_name} WHERE username = ?", (username,))
+        row = self.usermanager_database_cursor.fetchone()
+        user = User(row[0],row[1])
+
+        if user.username:
+            if new_password:
+                self.usermanager_database_cursor.execute(F'UPDATE {self.user_table_name} SET password = ? WHERE username = ?',(new_password, username))
+                self.usermanager_database.commit()
+                self.on_user_change_password.send(self,user=User(user.username, new_password))
+            else:
+                warnings.warn("called change password with no new password, did not change password")
+        else:
+            warnings.warn("called change password with non-existant user, did not change password")
+
+    def change_username(self, old_username, new_username):
+        if not old_username:
+            warnings.warn("called change useraname with empty username, did not change username")
+            return
+        
+        if not new_username:
+            warnings.warn("called change user name with empty new username, username not changed")
+            return
+        
+        self.usermanager_database_cursor.execute(f"SELECT username FROM {self.user_table_name} WHERE username = ?", (old_username,))
+        old_username_exists = self.usermanager_database_cursor.fetchone()
+
+        self.usermanager_database_cursor.execute(f"SELECT username FROM {self.user_table_name} WHERE username = ?", (new_username,))
+        self.new_username_exists = self.usermanager_database_cursor.fetchone()
+        
+        if old_username_exists:
+            if not self.new_username_exists:
+                self.usermanager_database_cursor.execute(f"UPDATE {self.user_table_name} SET username = ? where username = ?",(new_username, old_username))
+                self.usermanager_database.commit()
+                self.on_user_changed_username.send(self, old_username=old_username, new_username=new_username)
+            else:
+                warnings.warn("called change user name with user name that already exist, did not change user name")
+        else:
+            warnings.warn("called change user name with non existant user, did not change Username")
