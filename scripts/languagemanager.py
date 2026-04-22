@@ -5,7 +5,7 @@ import warnings
 class LanguageManager:
     ENGLISH_LANGUAGE_KEY = "en"
     AMHARIC_LANGUAGE_KEY = "am"
-    TRANSLATIONS_FILE_PATH = pathlib.Path(__file__).parent/'assets'/'translations.json'
+    TRANSLATIONS_FILE_PATH = pathlib.Path(__file__).parent.parent/'assets'/'translations.json'
     TRANSLATIONS_DICT = {}
 
     def __init__(self, default_lang="en"):
