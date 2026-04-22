@@ -35,7 +35,7 @@ class UserManager:
 
          
         if username and not user_already_exists:
-                if password:
+                if password!=None:
                     self.usermanager_database_cursor.execute(f'INSERT INTO {self.users_table_name} VALUES (?, ?)', (username, password))
                     self.usermanager_database.commit()
                     self.on_user_created.send(self, user=User(username, password))
