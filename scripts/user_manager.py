@@ -44,16 +44,20 @@ class UserManager:
         else:
             warnings.warn('called called create user function with a "None" username, user not created')
 
-    def delete_user(self, user_to_be_deleted:User):
-        if user_to_be_deleted:
-            if user_to_be_deleted.username:
-                self.usermanager_database_cursor.execute(f'DELETE FROM {self.users_table_name} WHERE username = ?', (user_to_be_deleted.username,))
-                self.usermanager_database.commit()
-                self.on_user_deleted.send(self,user=user_to_be_deleted)
-            else:
-                 warnings.warn('called delete_user function with "None" username, no users were deleted')
+    def delete_user(self, username_of_user_to_be_deleted):
+        if username_of_user_to_be_deleted:
+            row = self.usermanager_database_cursor.execute(f"SELECT * FROM {self.users_table_name} WHERE username = ?",(username_of_user_to_be_deleted,))
+            deleted_user=None
+            if row:
+                deleted_user = User(row[0],row[1])
+
+            self.usermanager_database_cursor.execute(f'DELETE FROM {self.users_table_name} WHERE username = ?', (username_of_user_to_be_deleted,))
+            self.usermanager_database.commit()
+
+            if deleted_user:
+                self.on_user_deleted.send(self,user=deleted_user)
         else:
-           warnings.warn('called delete_user function with "None" user, no users were deleted')
+                warnings.warn('called delete_user function with "None" username, no users were deleted')
     
     def login(self, user_to_login):
         if user_to_login:
