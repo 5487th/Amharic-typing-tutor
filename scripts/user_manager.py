@@ -46,10 +46,11 @@ class UserManager:
 
     def delete_user(self, username_of_user_to_be_deleted):
         if username_of_user_to_be_deleted:
-            row = self.usermanager_database_cursor.execute(f"SELECT * FROM {self.users_table_name} WHERE username = ?",(username_of_user_to_be_deleted,))
+            self.usermanager_database_cursor.execute(f"SELECT * FROM {self.users_table_name} WHERE username = ?",(username_of_user_to_be_deleted,))
+            row = self.usermanager_database_cursor.fetchone() 
             deleted_user=None
             if row:
-                deleted_user = User(row[0],row[1])
+                deleted_user = User(row[0], row[1])
 
             self.usermanager_database_cursor.execute(f'DELETE FROM {self.users_table_name} WHERE username = ?', (username_of_user_to_be_deleted,))
             self.usermanager_database.commit()
