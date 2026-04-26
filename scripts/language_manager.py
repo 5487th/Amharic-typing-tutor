@@ -31,8 +31,12 @@ class LanguageManager:
         widget.configure(text=self.translate(key))
     
     def update_all_widgets(self):
+        alive_widgets = []
         for widget, key in self.registered_widgets:
-            widget.configure(text=self.translate(key))
+            if widget and widget.winfo_exists():
+                widget.configure(text=self.translate(key))
+                alive_widgets.append((widget, key))
+        self.registered_widgets = alive_widgets
     
     def translate(self, key):
         if self.TRANSLATIONS_DICT:
