@@ -40,5 +40,5 @@ class LanguageManager:
             if translation:
                 return translation
             else:
-                warnings.warn("key not found, returning passed key")
+                warnings.warn(f"key '{key}' not found, returning passed key")
                 return key
