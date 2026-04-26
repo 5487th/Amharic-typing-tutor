@@ -1,6 +1,46 @@
 {
-    "login or create a user":{
-        "en":"login or create a user",
-        "am":"ይግቡ ወይም መታወቂያ ይፍጠሩ"
+    "welcome, login or create a user":{
+        "en":"welcome, login or create a user",
+        "am":"እንኳን ደና መጡ፤ \n ይግቡ ወይም መታወቂያ ይፍጠሩ"
+    },
+    "Create a new user":{
+        "en":"Create new a user",
+        "am":"አዲስ መታወቂያ ይፍጠሩ"
+    },
+    "Username":{
+        "en":"Username",
+        "am":"ስም"
+    },
+    "Password":{
+        "en":"Password",
+        "am":"ቁልፍ"
+    },
+    "-Username must be 4 - 12 characters long":{
+        "en":"-Username must be 4 - 12 characters long",
+        "am":"-ሰም ከ 4 - 12 ፊደል መሆን አለበት"
+    },
+    "-Username must be unique":{
+        "en":"-Username must be unique",
+        "am":"፟-ስም ልዩ መሆን አለበት"
+    },
+    "-Password must have at least 4 characters or no characters for no password":{
+        "en":"-Password must have at least \n 4 characters or no characters for no password",
+        "am":"-ቁልፍ ቢያንስ 4 ፊደል ሊኖረው \n ይገባል ወይም ቁልፍ ካልፈለጉ ባዶ ይተዉት"
+    },
+    "-password must contan atleast one number and 3 letters if its not empty":{
+        "en":"-password must contan atleast one \n number and 3 letters if its not empty",
+        "am":"-ቁልፍ ባዶ ካልሆነ ቢያንስ 1 ቁጥር እና 3 ፊደል ሊኖረው ይገባል"
+    },
+    "Create":{
+        "en":"Create",
+        "am":"ፍጠረው"
+    },  
+    "Cancel":{
+        "en":"Cancel",
+        "am":"ተወዉ"
+    },
+    "Login":{
+        "en":"login",
+        "am":"ግባ"
     }
 }
