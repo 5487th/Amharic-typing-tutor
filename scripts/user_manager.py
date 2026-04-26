@@ -1,6 +1,7 @@
 import sqlite3
 import warnings
 from blinker import signal
+import pathlib
 
 class User:
     def __init__(self, username, password):
@@ -11,9 +12,13 @@ class UserManager:
     def __init__(self):
         self.current_user = None
         
-        self.usermanager_database_name = "usermanager"
+        self.usermanager_database_name = "users"
+        
+        self.user_Data_base_location = pathlib.Path(__file__).parent.parent/'data'/f'{self.usermanager_database_name}.db'
 
-        self.usermanager_database = sqlite3.connect(f'{self.usermanager_database_name}.db')
+        self.user_Data_base_location.parent.mkdir(parents=True, exist_ok=True)
+
+        self.usermanager_database = sqlite3.connect(self.user_Data_base_location)
         self.usermanager_database_cursor = self.usermanager_database.cursor()
         
         self.users_table_name = 'users'
@@ -32,7 +37,6 @@ class UserManager:
     def create_user(self, username, password = ""):
         self.usermanager_database_cursor.execute(f'SELECT (username) FROM {self.users_table_name} Where username = ?', (username,))
         user_already_exists = self.usermanager_database_cursor.fetchone()
-
          
         if username and not user_already_exists:
                 if password!=None:
@@ -129,3 +133,12 @@ class UserManager:
                 warnings.warn("called change user name with user name that already exist, did not change user name")
         else:
             warnings.warn("called change user name with non existant user, did not change Username")
+
+    def User_exists(self, username):
+        self.usermanager_database_cursor.execute(f"SELECT * FROM {self.users_table_name} WHERE username = ?",(username,))
+        row = self.usermanager_database_cursor.fetchone()
+
+        if row:
+            return True
+        else:
+            return False
