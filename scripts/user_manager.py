@@ -139,6 +139,6 @@ class UserManager:
         row = self.usermanager_database_cursor.fetchone()
 
         if row:
-            return True
-        else:
             return False
+        else:
+            return True
