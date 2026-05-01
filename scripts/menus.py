@@ -1,7 +1,5 @@
 import customtkinter as ctk
 from blinker import signal
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
 
 from scripts.user_manager import UserManager, User
 from scripts.language_manager import LanguageManager
@@ -28,10 +26,10 @@ class UserloginSignupScreen(Menu):
 
         #choose a user label
         self.choose_a_user_label = ctk.CTkLabel(self.root,font=("Roboto", 40))
-        self.language_manager.register_widget(self.choose_a_user_label,"welcome, login or create a user")
+        self.language_manager.register_widget(self.choose_a_user_label,"Welcome, login or create a user")
         self.choose_a_user_label.place(rely=0.2,relx=0.5,anchor="center")
         
-        #user icons
+        #user icons frame
         self.user_icons_frame = ctk.CTkFrame(self.root, bg_color="transparent", fg_color="transparent")
         self.user_icons_frame.place(relx=0.5, rely=0.5, anchor="center")
 
@@ -39,8 +37,9 @@ class UserloginSignupScreen(Menu):
 
         self.update_user_icon_display()
 
-        self.user_manager.on_user_created.connect(self.on_user_created_or_destroyed)
-        self.user_manager.on_user_deleted.connect(self.on_user_created_or_destroyed)
+        self.user_manager.on_user_created.connect(self.on_user_icons_display_need_to_be_updated)
+        self.user_manager.on_user_deleted.connect(self.on_user_icons_display_need_to_be_updated)
+        self.user_manager.on_user_changed_username.connect(self.on_user_icons_display_need_to_be_updated)
 
         self.user_creation_menu = UserCreationMenu(self.language_manager, self.user_manager, self.root)
     
@@ -52,8 +51,8 @@ class UserloginSignupScreen(Menu):
         if self.user_icons_frame:
             self.user_icons_frame.place_forget()
         
-    #login screen
-    def on_user_created_or_destroyed(self, sender, **kwargs):
+    #singup login screen 
+    def on_user_icons_display_need_to_be_updated(self, sender, **kwargs):
         self.update_user_icon_display()
         
     def update_user_icon_display(self):
@@ -62,7 +61,7 @@ class UserloginSignupScreen(Menu):
 
         self.user_icons = []
         for user in self.user_manager.get_all_users():
-            user_icon = UserLoginIcon(self.user_icons_frame, user)
+            user_icon = UserLoginIcon(self.user_icons_frame, self.user_manager, user)
             user_icon.pack_propagate(False)
             user_icon.pack(side = "left", padx = 1)
             user_icon.on_user_pressed_icon.connect(self.on_user_icon_presesd)
@@ -94,7 +93,8 @@ class UserloginSignupScreen(Menu):
         
         self.user_creation_menu.on_user_type_in_username_entery.connect(self.on_user_type_into_username_entery)
         self.user_creation_menu.on_user_type_in_password_entery.connect(self.on_user_type_into_password_entery)
-    
+        self.on_user_type_into_password_entery(self, "")
+
     def on_user_icon_presesd(self, sender, user):
         if user.password == "":
             self.user_manager.login(user)
@@ -108,56 +108,47 @@ class UserloginSignupScreen(Menu):
             self.user_login_menu.on_cancel_login_button_pressed.connect(self.on_cancel_login_button_pressed)
             self.user_login_menu.on_login_button_pressed.connect(self.on_login_button_pressed)
    
+   #login menu
     def on_login_button_pressed(self, sender, user, entered_password):
         hashed_password=user.password
 
-        if self.is_Correct_password(hashed_password, entered_password):
+        if self.user_manager.is_Correct_password(hashed_password, entered_password):
             self.user_manager.login(user)
             print("correct")
+            self.user_login_menu.password_entery_field.configure(border_width=0)
+
         else:
             self.user_login_menu.password_entery_field.configure(border_width=3, border_color="red")
-            self.user_login_menu.password_entery_field.delete(0,"end")
 
-    def is_Correct_password(self, hashed, entered):
-        try:
-            ph=PasswordHasher()
-            ph.verify(hashed, entered)
-            return True
-        except VerifyMismatchError:
-            return False
-    
     def on_cancel_login_button_pressed(self, sender):
         self.user_login_menu.password_entery_field.delete(0,"end")
+        self.user_login_menu.password_entery_field.configure(border_width=0)
+        
         self.user_login_menu.place_forget()
 
 
         self.choose_a_user_label.place(rely=0.2,relx=0.5,anchor="center")
         self.user_icons_frame.place(relx=0.5, rely=0.5, anchor="center")
         self.update_user_icon_display()
-
-       
+   
     #user creation menu
     def on_create_user_button_pressed(self, sender, username, password):
-            is_username_unique = self.user_manager.User_exists(username)
-            is_username_in_proper_range_of_characters = (len(username) <= 12 and len(username) >= 4)
-
-            is_password_four_characters_long = len(password) >= 4
-            is_password_empty = len(password) == 0
-
-            has_numbers = any(char.isdigit() for char in password)
-            has_atleast_three_letters = sum(char.isalpha() for char in password) >= 3
-
-            is_valid_username = (is_username_unique and is_username_in_proper_range_of_characters)
-            is_Valid_password = (is_password_four_characters_long and has_numbers and has_atleast_three_letters) or is_password_empty
-            
             stripped_username = username.strip()
             stripped_password = password.strip()
 
-            
-            if is_valid_username and (is_password_four_characters_long and has_numbers and has_atleast_three_letters):
-                ph=PasswordHasher()
-                hashed_password= ph.hash(stripped_password)
-                self.user_manager.create_user(stripped_username, hashed_password)
+            is_username_unique = not self.user_manager.User_exists(stripped_username)
+            is_username_in_proper_range_of_characters = (len(stripped_username) <= 12 and len(stripped_username) >= 4)
+
+            is_password_atleast_four_characters_long = len(stripped_password) >= 4
+            is_password_empty = len(stripped_password) == 0
+
+            has_numbers = any(char.isdigit() for char in stripped_password)
+            has_atleast_three_letters = sum(char.isalpha() for char in stripped_password) >= 3
+
+            is_valid_username = (is_username_unique and is_username_in_proper_range_of_characters)
+              
+            if is_valid_username and (is_password_atleast_four_characters_long and has_numbers and has_atleast_three_letters):
+                self.user_manager.create_user(stripped_username, stripped_password)
                 self.on_cancel_button_pressed(self)
             elif is_valid_username and (is_password_empty):
                 self.user_manager.create_user(stripped_username, "")
@@ -198,7 +189,7 @@ class UserloginSignupScreen(Menu):
         has_numbers = any(char.isdigit() for char in password)
         has_atleast_three_letters = sum(char.isalpha() for char in password) >= 3
 
-        if has_numbers and has_atleast_three_letters:
+        if (has_numbers and has_atleast_three_letters) or is_password_empty:
             self.user_creation_menu.password_character_type_requirements_label.configure(text_color="green")
         else:
             self.user_creation_menu.password_character_type_requirements_label.configure(text_color="red")
