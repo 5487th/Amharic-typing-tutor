@@ -174,8 +174,11 @@ class UserloginMenu(CTkFrame):
         self.language_manager = language_manager
         self.user_manager = user_manager
         self.user = user
+        if not user_manager.user_has_empty_password(user.username):
+            self.configure(width=300, height=450)
+        else:
+            self.configure(width=300, height=340)
 
-        self.configure(width=300, height=450)
         self.pack_propagate(False)
         
         self.login_to_label=CTkLabel(self,font=("Roboto",40))
@@ -192,14 +195,17 @@ class UserloginMenu(CTkFrame):
 
         self.username_password_buffer=CTkFrame(self, height=10, fg_color="transparent")
         self.username_password_buffer.pack()
-
+        
         self.password_label = CTkLabel(self,text=f"Password", font=("Roboto", 20))
         self.language_manager.register_widget(self.password_label,"Password")
-        self.password_label.pack(pady=5)
 
         self.password_entery_text_variable = StringVar()
         self.password_entery_field = CTkEntry(self, width=200, height=30, border_width=0, textvariable=self.password_entery_text_variable)
-        self.password_entery_field.pack(side="top", pady=10)
+       
+        if not user_manager.user_has_empty_password(user.username):
+            self.password_label.pack(pady=5)
+            self.password_entery_field.pack(side="top", pady=10)
+           
 
         self.buttons_frame=CTkFrame(self,width=285, height=50, fg_color="transparent")
         self.buttons_frame.pack(side="bottom",pady=10)
@@ -218,4 +224,42 @@ class UserloginMenu(CTkFrame):
     def Cancel_button_pressed(self):
         self.on_cancel_login_button_pressed.send(self)
     
-    
+class logging_in_transition_screen(CTkFrame):
+    def __init__(self, language_manager:LanguageManager, user_manager:UserManager, master, **kwargs):
+        super().__init__(master, **kwargs)  
+        
+        self.language_manager = language_manager
+        self.user_manager = user_manager
+        
+        self.configure()
+        self.place_configure(relwidth=1, relheight=1)
+
+        self.username_profile_frame = CTkFrame(self, fg_color="transparent")
+        self.username_profile_frame.place(relx=0.5, rely=0.3, anchor="center")
+
+        image_object = Image.open(user_manager.current_user.profile_picture_path)
+        ctk_image=CTkImage(light_image=image_object, dark_image=image_object,size=(280, 280))
+        self.user_profile = CTkLabel(self.username_profile_frame, text="", image=ctk_image)
+        self.user_profile.pack()
+
+        self.user_name_label = CTkLabel(self.username_profile_frame, text=user_manager.current_user.username, font=("Roboto", 40))
+        self.user_name_label.pack(pady=10)
+
+        self.logging_you_in_label = CTkLabel(self, font = ("Roboto", 40))
+        self.logging_you_in_label.place(rely=0.8,relx=0.5, anchor="center")
+
+        self.dot_count = 0
+        self.base_text = self.language_manager.translate("logging you in")
+
+        self.animate_dots()
+
+    def animate_dots(self):
+        self.dot_count = (self.dot_count % 3) + 1
+        dots = "." * self.dot_count
+
+        self.logging_you_in_label.configure(text=f"{self.base_text}{dots}")
+
+        self.after(300, self.animate_dots)
+
+
+
