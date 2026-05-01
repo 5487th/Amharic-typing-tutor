@@ -1,10 +1,10 @@
 {
-    "welcome, login or create a user":{
-        "en":"welcome, login or create a user",
-        "am":"እንኳን ደና መጡ፤ \n ይግቡ ወይም መታወቂያ ይፍጠሩ"
+    "Welcome, login or create a user":{
+        "en":"Welcome, login or create a user",
+        "am":"እንኳን ደሀና መጡ፤ \n ይግቡ ወይም አዲስ መታወቂያ ይፍጠሩ"
     },
     "Create a new user":{
-        "en":"Create new a user",
+        "en":"Create a new user",
         "am":"አዲስ መታወቂያ ይፍጠሩ"
     },
     "Username":{
@@ -25,7 +25,7 @@
     },
     "-Password must have at least 4 characters or no characters for no password":{
         "en":"-Password must have at least \n 4 characters or no characters for no password",
-        "am":"-ቁልፍ ቢያንስ 4 ፊደል ሊኖረው \n ይገባል ወይም ቁልፍ ካልፈለጉ ባዶ ይተዉት"
+        "am":"-ቁልፉ ቢያንስ 4 ፊደል ሊኖረው \n ይገባል ወይም ቁልፍ ካልፈለጉ ባዶውን ይተዉት"
     },
     "-password must contan atleast one number and 3 letters if its not empty":{
         "en":"-password must contan atleast one \n number and 3 letters if its not empty",
@@ -41,6 +41,10 @@
     },
     "Login":{
         "en":"login",
-        "am":"ግባ"
+        "am":"አስገባኝ"
+    },
+    "Login...":{
+        "en":"Login...",
+        "am":"ይግቡ..."
     }
 }
