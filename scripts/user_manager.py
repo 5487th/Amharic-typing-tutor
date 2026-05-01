@@ -186,3 +186,10 @@ class UserManager:
             return True
         else:
             return False
+
+    def user_has_empty_password(self, username):
+        if not username:
+            warnings.warn("called username has empty password fucntion with none username, returning False")
+            return False
+        ph=PasswordHasher()
+        return self.is_Correct_password(self.get_user(username).password,"")
