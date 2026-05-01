@@ -12,11 +12,12 @@ class Menu:
     def close_menu(self):
         pass
 
-class UserloginSignupScreen(Menu):
+class UserloginSignupMenu(Menu):
     def __init__(self, root, _language_manager:LanguageManager, _user_manager:UserManager):
         self.language_manager = _language_manager
         self.user_manager = _user_manager
         self.root=root
+        self.on_user_logged_in = signal("on_user_logged_in")
     
     def open_menu(self):
         #languages selection drop down
@@ -50,6 +51,10 @@ class UserloginSignupScreen(Menu):
             self.choose_a_user_label.place_forget()
         if self.user_icons_frame:
             self.user_icons_frame.place_forget()
+        if self.user_creation_menu:
+            self.user_creation_menu.place_forget()
+        if self.user_login_menu:
+            self.user_login_menu.place_forget()
         
     #singup login screen 
     def on_user_icons_display_need_to_be_updated(self, sender, **kwargs):
@@ -97,7 +102,7 @@ class UserloginSignupScreen(Menu):
 
     def on_user_icon_presesd(self, sender, user):
         if user.password == "":
-            self.user_manager.login(user)
+            self.log_user_in(self, user=user)
         else:
             self.user_icons_frame.place_forget()
             self.choose_a_user_label.place_forget()
@@ -113,12 +118,16 @@ class UserloginSignupScreen(Menu):
         hashed_password=user.password
 
         if self.user_manager.is_Correct_password(hashed_password, entered_password):
-            self.user_manager.login(user)
+            self.log_user_in(self, user=user)
             print("correct")
             self.user_login_menu.password_entery_field.configure(border_width=0)
 
         else:
             self.user_login_menu.password_entery_field.configure(border_width=3, border_color="red")
+    
+    def log_user_in(self, user):
+        self.user_manager.login(user)
+        self.on_user_logged_in.send(self, user=user)
 
     def on_cancel_login_button_pressed(self, sender):
         self.user_login_menu.password_entery_field.delete(0,"end")
@@ -200,3 +209,13 @@ class UserloginSignupScreen(Menu):
             self.user_creation_menu.password_character_length_requirement_label.configure(text_color="green")
         else:
             self.user_creation_menu.password_character_length_requirement_label.configure(text_color="red")
+
+class MainMenu(Menu):
+    def __init__(self, user_manager:UserManager):
+        self.current_user=user_manager.current_user
+    
+    def open_menu(self, root):
+        if not self.current_user:
+            warnings.warn("no user logged in, cant open main menu")
+            return
+        
