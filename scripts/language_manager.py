@@ -25,6 +25,10 @@ class LanguageManager:
             LanguageManager.TRANSLATIONS_DICT = json.load(file)
 
     def set_language(self, lang):
+        if not lang:
+            warnings.warn("called set language function with 'none' lang, lang not set")
+            return
+
         if lang in [
             LanguageManager.ENGLISH_LANGUAGE_KEY,
             LanguageManager.AMHARIC_LANGUAGE_KEY,
@@ -33,7 +37,7 @@ class LanguageManager:
             self.update_all_widgets()
         else:
             warnings.warn(
-                "attempted to set language with invalid language, language set to english"
+                "called set language function with invalid lang, lang not set"
             )
             self.current_lang = self.ENGLISH_LANGUAGE_KEY
 
