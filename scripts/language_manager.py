@@ -42,6 +42,17 @@ class LanguageManager:
             self.current_lang = self.ENGLISH_LANGUAGE_KEY
 
     def register_widget(self, widget, key):
+        if not widget:
+            warnings.warn(
+                "called register widget function with 'None' widget, widget not resgistered"
+            )
+            return
+        if not key:
+            warnings.warn(
+                "called register widget function with 'None' key, widget not resgistered"
+            )
+            return
+
         self.registered_widgets.append((widget, key))
         widget.configure(text=self.translate(key))
 
@@ -54,10 +65,21 @@ class LanguageManager:
         self.registered_widgets = alive_widgets
 
     def translate(self, key):
-        if self.TRANSLATIONS_DICT:
-            translation = self.TRANSLATIONS_DICT.get(key, {}).get(self.current_lang)
-            if translation:
-                return translation
-            else:
-                warnings.warn(f"key '{key}' not found, returning passed key")
-                return key
+        if not key:
+            warnings.warn(
+                "called translate function with 'None' key, key not translated"
+            )
+            return
+
+        if not self.TRANSLATIONS_DICT:
+            warnings.warn(
+                "called translate function with missing dict, returning passed key"
+            )
+            return key
+
+        translation = self.TRANSLATIONS_DICT.get(key, {}).get(self.current_lang)
+        if not translation:
+            warnings.warn(f"key '{key}' not found, returning passed key")
+            return key
+
+        return translation

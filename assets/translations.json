@@ -46,5 +46,25 @@
     "Login...":{
         "en":"Login...",
         "am":"ይግቡ..."
+    },
+    "logging you in":{
+        "en":"logging you in",
+        "am":"እያስገባንኦት ነው"
+    },
+    "choose an area":{
+        "en":"choose an area",
+        "am":"ቦታ ይምረጡ"
+    },
+    "Manual":{
+        "en":"Manual",
+        "am":"መመሪያ"
+    },
+    "Games":{
+        "en":"Games",
+        "am":"ጨዋታዎች"
+    },
+    "Test":{
+        "en":"Test",
+        "am":"ፈተና"
     }
 }
