@@ -1,6 +1,5 @@
 import customtkinter as ctk
 from blinker import signal
-
 from scripts.user_manager import UserManager, User
 from scripts.language_manager import LanguageManager
 from scripts.custom_widgets import *
@@ -171,8 +170,6 @@ class SignUpMenu(Menu):
 
         self.on_user_created = signal("on_create_user_button_pressed")
         self.on_cancel_button_pressed = signal("on_cancel_user_button_pressed")
-        # self.on_user_type_in_username_entery = signal("on_user_type_in_username_entery")
-        # self.on_user_type_in_password_entery = signal("on_user_type_in_password_entery")
 
     def open_menu(self):
         if not self.root:
@@ -195,87 +192,6 @@ class SignUpMenu(Menu):
         self.language_manager.register_widget(
             self.Create_a_user_label, "Create a new user"
         )
-
-        # username label
-        self.username_label = CTkLabel(self.main_frame, font=("Roboto", 20))
-        self.language_manager.register_widget(self.username_label, "Username")
-        self.username_label.pack(side="top")
-
-        # user name entery
-        self.username_entery_text_variable = StringVar()
-        self.username_entery_text_variable.trace_add(
-            "write", self.on_user_type_into_username_entery
-        )
-        self.username_entery_field = CTkEntry(
-            self.main_frame,
-            width=200,
-            height=30,
-            border_width=0,
-            textvariable=self.username_entery_text_variable,
-        )
-        self.username_entery_field.pack(side="top")
-
-        # requirements for username
-        self.username_character_length_requirement_label = CTkLabel(
-            self.main_frame, font=("Roboto", 15), text_color="red"
-        )
-        self.language_manager.register_widget(
-            self.username_character_length_requirement_label,
-            "-Username must be 4 - 12 characters long",
-        )
-        self.username_character_length_requirement_label.pack(side="top", pady=2)
-
-        self.username_character_unqieness_requirement_label = CTkLabel(
-            self.main_frame, font=("Roboto", 15), text_color="red"
-        )
-        self.language_manager.register_widget(
-            self.username_character_unqieness_requirement_label,
-            "-Username must be unique",
-        )
-        self.username_character_unqieness_requirement_label.pack(side="top", pady=2)
-
-        self.username_password_buffer = CTkFrame(
-            self.main_frame, height=20, fg_color="transparent"
-        )
-        self.username_password_buffer.pack_propagate(False)
-        self.username_password_buffer.pack()
-
-        # password
-        self.password_label = CTkLabel(self.main_frame, font=("Roboto", 20))
-        self.language_manager.register_widget(self.password_label, "Password")
-        self.password_label.pack(side="top")
-
-        self.password_entery_text_variable = StringVar()
-        self.password_entery_text_variable.trace_add(
-            "write", self.on_user_type_into_password_entery
-        )
-        self.password_entery_field = CTkEntry(
-            self.main_frame,
-            width=200,
-            height=30,
-            border_width=0,
-            textvariable=self.password_entery_text_variable,
-        )
-        self.password_entery_field.pack(side="top")
-
-        # requirement for password
-        self.password_character_length_requirement_label = CTkLabel(
-            self.main_frame, font=("Roboto", 15), text_color="green"
-        )
-        self.language_manager.register_widget(
-            self.password_character_length_requirement_label,
-            "-Password must have at least 4 characters or no characters for no password",
-        )
-        self.password_character_length_requirement_label.pack(side="top", pady=2)
-
-        self.password_character_type_requirements_label = CTkLabel(
-            self.main_frame, font=("Roboto", 15), text_color="green"
-        )
-        self.language_manager.register_widget(
-            self.password_character_type_requirements_label,
-            "-password must contan atleast one number and 3 letters if its not empty",
-        )
-        self.password_character_type_requirements_label.pack(side="top", pady=2)
 
         # buttons
         self.buttons_frame = CTkFrame(
@@ -307,6 +223,98 @@ class SignUpMenu(Menu):
         )
         self.language_manager.register_widget(self.cancel_button, "Cancel")
         self.cancel_button.pack(side="right", padx=10)
+
+        # buffer
+        self.button_details_buffer = CTkFrame(
+            self.main_frame, height=50, fg_color="transparent"
+        )
+        self.button_details_buffer.pack_propagate(False)
+        self.button_details_buffer.pack(side="bottom")
+
+        # details frame
+        self.details_frame = CTkFrame(self.main_frame, fg_color="transparent")
+        self.details_frame.pack(side="bottom")
+
+        # username label
+        self.username_label = CTkLabel(self.details_frame, font=("Roboto", 20))
+        self.language_manager.register_widget(self.username_label, "Username")
+        self.username_label.pack(expand=True, fill="both")
+
+        # user name entery
+        self.username_entery_text_variable = StringVar()
+        self.username_entery_text_variable.trace_add(
+            "write", self.on_user_type_into_username_entery
+        )
+        self.username_entery_field = CTkEntry(
+            self.details_frame,
+            width=200,
+            height=30,
+            border_width=0,
+            textvariable=self.username_entery_text_variable,
+        )
+        self.username_entery_field.pack(side="top")
+
+        # requirements for username
+        self.username_character_length_requirement_label = CTkLabel(
+            self.details_frame, font=("Roboto", 15), text_color="red"
+        )
+        self.language_manager.register_widget(
+            self.username_character_length_requirement_label,
+            "-Username must be 4 - 12 characters long",
+        )
+        self.username_character_length_requirement_label.pack(side="top", pady=2)
+
+        self.username_character_unqieness_requirement_label = CTkLabel(
+            self.details_frame, font=("Roboto", 15), text_color="red"
+        )
+        self.language_manager.register_widget(
+            self.username_character_unqieness_requirement_label,
+            "-Username must be unique",
+        )
+        self.username_character_unqieness_requirement_label.pack(side="top", pady=2)
+
+        self.username_password_buffer = CTkFrame(
+            self.details_frame, height=20, fg_color="transparent"
+        )
+        self.username_password_buffer.pack_propagate(False)
+        self.username_password_buffer.pack()
+
+        # password
+        self.password_label = CTkLabel(self.details_frame, font=("Roboto", 20))
+        self.language_manager.register_widget(self.password_label, "Password")
+        self.password_label.pack(side="top")
+
+        self.password_entery_text_variable = StringVar()
+        self.password_entery_text_variable.trace_add(
+            "write", self.on_user_type_into_password_entery
+        )
+        self.password_entery_field = CTkEntry(
+            self.details_frame,
+            width=200,
+            height=30,
+            border_width=0,
+            textvariable=self.password_entery_text_variable,
+        )
+        self.password_entery_field.pack(side="top")
+
+        # requirement for password
+        self.password_character_length_requirement_label = CTkLabel(
+            self.details_frame, font=("Roboto", 15), text_color="green"
+        )
+        self.language_manager.register_widget(
+            self.password_character_length_requirement_label,
+            "-Password must have at least 4 characters or no characters for no password",
+        )
+        self.password_character_length_requirement_label.pack(side="top", pady=2)
+
+        self.password_character_type_requirements_label = CTkLabel(
+            self.details_frame, font=("Roboto", 15), text_color="green"
+        )
+        self.language_manager.register_widget(
+            self.password_character_type_requirements_label,
+            "-password must contan atleast one number and 3 letters if its not empty",
+        )
+        self.password_character_type_requirements_label.pack(side="top", pady=2)
 
         self.main_frame.place(relx=0.5, rely=0.5, anchor="center")
         self.root.update_idletasks()
@@ -429,82 +437,27 @@ class MainMenu(Menu):
 
         self.main_frame = CTkFrame(self.root, fg_color="transparent")
 
-        # main tab view
-        self.tab_menu = CTkTabview(
-            self.main_frame,
-            width=1000,
-            height=500,
-            fg_color="transparent",
-        )
-
-        self.tab_menu.place(
-            relx=0.5, rely=0.5, relwidth=1.2, relheight=1, anchor="center"
-        )
-
-        # tab options
-        self.tab_menu.add(self.language_manager.translate("Manual"))
-        self.tab_menu.add(self.language_manager.translate("Games"))
-        self.tab_menu.add(self.language_manager.translate("Test"))
-
-        # pushing tabs down a bit
-        self.tab_menu._segmented_button.grid(pady=(2, 0))
-
-        # configuring look of buttons
-        for button in self.tab_menu._segmented_button._buttons_dict.values():
-            button.configure(
-                width=100,
-                height=50,
-                font=("Roboto", 20),
-                corner_radius=20,
-            )
-
-        # registering tabs to the language manager
-        self.language_manager.register_widget(
-            self.tab_menu._segmented_button._buttons_dict[
-                self.language_manager.translate("Manual")
-            ],
-            "Manual",
-        )
-        self.language_manager.register_widget(
-            self.tab_menu._segmented_button._buttons_dict[
-                self.language_manager.translate("Games")
-            ],
-            "Games",
-        )
-        self.language_manager.register_widget(
-            self.tab_menu._segmented_button._buttons_dict[
-                self.language_manager.translate("Test")
-            ],
-            "Test",
-        )
+        self.header_Frame = CTkFrame(self.main_frame, height=20, fg_color="transparent")
+        self.header_Frame.pack(fill="x")
 
         # profile
         self.profile_picture_button = ImageButton(
             self.user_manager.current_user.profile_picture_path,
-            self.main_frame,
+            self.header_Frame,
         )
-        self.profile_picture_button.place(x=10, y=10)
+        self.profile_picture_button.pack(side="left", anchor="w", pady=10, padx=10)
         self.profile_picture_button.on_mouse_click.connect(self.on_user_profile_pressed)
 
-        manual_path = (
-            pathlib.Path(__file__).parent.parent
-            / "assets"
-            / "Amharic_Typing_Manual.pdf"
+        # tittle
+        self.choose_an_activity_label = CTkLabel(
+            self.header_Frame, text="Choose an activity", font=("Roboto", 40)
         )
+        self.choose_an_activity_label.pack(side="top", pady=15)
 
-        pdf_viewer = PDFViewer(
-            self.tab_menu.tab(self.language_manager.translate("Manual")),
-            manual_path,
+        self.main_scrollable_frame = CTkScrollableFrame(
+            self.main_frame, corner_radius=0, fg_color="transparent"
         )
-        pdf_viewer.pack(fill="both", expand=True)
-
-        self.games_scrollable_frame = CTkScrollableFrame(
-            self.tab_menu.tab(self.language_manager.translate("Games")),
-            corner_radius=10,
-        )
-        self.games_scrollable_frame.place(
-            relx=0.5, rely=0.5, relwidth=0.8, relheight=0.95, anchor="center"
-        )
+        self.main_scrollable_frame.pack(expand=True, fill="both")
 
         self.main_frame.place(
             relwidth=1, relheight=1, relx=0.5, rely=0.5, anchor="center"
@@ -516,25 +469,3 @@ class MainMenu(Menu):
 
     def on_user_profile_pressed(self, sender):
         self.on_user_profile_clicked.send(self)
-
-
-class SettingsMenu(Menu):
-    def __init__(self, root, current_opener=None):
-        super().__init__()
-
-        self.root = root
-        self.current_opner = current_opener
-
-    def open_menu(self, opener: Menu):
-        self.current_opner = opener
-
-        # self.back_button = CTkButton(
-        #     self.root, width=50, height=50, text="<", font=("Roboto", 40)
-        # )
-        # self.back_button.place(relx=0.1, rely=0.1)
-
-        self.settings_label = CTkLabel(self.root, text="Settings", font=("Roboto", 40))
-        self.settings_label.place(relx=0.5, rely=0.05, anchor="center")
-
-    def close_menu(self):
-        return super().close_menu()
