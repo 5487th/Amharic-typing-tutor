@@ -17,7 +17,6 @@ language_manager: LanguageManager = LanguageManager()
 # menus
 login_menu = LoginMenu(root, language_manager, user_manager)
 signup_menu = SignUpMenu(root, language_manager, user_manager)
-settings_menu = SettingsMenu(root)
 main_menu = MainMenu(root, user_manager, language_manager)
 
 # menu connectors
@@ -26,24 +25,23 @@ login_to_main_menu_connector = LoginToMainMenuConnector(
     root, login_menu, main_menu, language_manager, user_manager
 )
 
-
 login_menu.open_menu()
 
 
 root.geometry("1000x600")
 root.minsize(1000, 600)
-root.title("Amharic typing tutor")
+root.title("Amharic typing games")
 ctk.set_appearance_mode("light")
 
 # icon
-app_id = "Amharic.Typing.Tutor.Id"
+app_id = "Amharic.Typing.games.Id"
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
 
 app_icon_path = (
     pathlib.Path(__file__).parent
     / "assets"
     / "images"
-    / "amharic typing tutor app icon.ico"
+    / "amharic typing games app icon.ico"
 )
 root.iconbitmap(app_icon_path)
 
