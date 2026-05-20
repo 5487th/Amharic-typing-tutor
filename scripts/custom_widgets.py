@@ -3,8 +3,8 @@ import warnings
 from blinker import signal
 from PIL import Image, ImageEnhance, ImageTk
 import pathlib
-import pywinstyles
 import fitz
+
 from scripts.user_manager import User
 from scripts.user_manager import UserManager
 from scripts.language_manager import LanguageManager
@@ -370,110 +370,155 @@ class GamesIcon(CTkFrame):
 
 
 class PDFViewer(CTkFrame):
-    """
-    Reusable scrollable PDF viewer widget for CustomTkinter.
 
-    Features:
-    - Scrollable
-    - Multi-page rendering
-    - Zoom support
-    - Mouse wheel scrolling
-    - Unicode/Ethiopic-safe
-    - Embedded-font-safe
-    """
+    def __init__(self, master, root, width=800, height=600, render_scale=2, **kwargs):
+        super().__init__(master, width=width, height=height, **kwargs)
 
-    def __init__(
-        self, parent, pdf_path=None, zoom=1.5, page_padding=12, *args, **kwargs
-    ):
-        super().__init__(parent, *args, **kwargs)
+        self.root = root
+        self.render_scale = render_scale
 
-        self.zoom = zoom
-        self.page_padding = page_padding
+        self.pdf = None
+        self.page_count = 0
+        self.current_page = 0
 
-        self.doc = None
-        self.images = []
+        self.current_pil_image = None
+        self.tk_image = None
 
-        # =====================================================
-        # Scrollable container
-        # =====================================================
+        # =========================
+        # TOP BAR
+        # =========================
+        self.topbar = CTkFrame(self)
+        self.topbar.pack(fill="x", padx=10, pady=10)
 
-        self.scroll = CTkScrollableFrame(self, fg_color="transparent")
+        self.prev_button = CTkButton(
+            self.topbar, text="◀", width=40, command=self.previous_page
+        )
+        self.prev_button.pack(side="left")
 
-        self.scroll.pack(fill="both", expand=True)
+        self.page_label = CTkLabel(self.topbar, text="0 / 0")
+        self.page_label.pack(side="left", expand=True)
 
-        # =====================================================
-        # Initial PDF
-        # =====================================================
+        self.next_button = CTkButton(
+            self.topbar, text="▶", width=40, command=self.next_page
+        )
+        self.next_button.pack(side="right")
 
-        if pdf_path:
-            self.load_pdf(pdf_path)
+        # =========================
+        # IMAGE DISPLAY
+        # =========================
+        self.image_label = CTkLabel(self, text="")
+        self.image_label.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+
+        # =========================
+        # EVENTS
+        # =========================
+        self.bind("<Configure>", self._on_resize)
+
+        self.root.bind("<Left>", self._left_key)
+        self.root.bind("<Right>", self._right_key)
 
     # =========================================================
-    # PUBLIC API
+    # PUBLIC
     # =========================================================
+    def load(self, pdf_path):
 
-    def load_pdf(self, pdf_path):
+        self.close()
 
-        self.clear()
+        self.pdf = fitz.open(pdf_path)
 
-        self.doc = fitz.open(pdf_path)
+        self.page_count = len(self.pdf)
 
-        matrix = fitz.Matrix(self.zoom, self.zoom)
+        self.current_page = 0
 
-        for page_num in range(len(self.doc)):
+        self.show_page(0)
 
-            page = self.doc[page_num]
+    def close(self):
 
-            pix = page.get_pixmap(matrix=matrix)
+        if self.pdf:
+            self.pdf.close()
 
-            mode = "RGB"
+        self.pdf = None
+        self.page_count = 0
+        self.current_page = 0
 
-            if pix.alpha:
-                mode = "RGBA"
+    def next_page(self):
 
-            img = Image.frombytes(mode, [pix.width, pix.height], pix.samples)
+        if not self.pdf:
+            return
 
-            photo = CTkImage(
-                light_image=img, dark_image=img, size=(int(pix.width), int(pix.height))
-            )
+        if self.current_page < self.page_count - 1:
+            self.show_page(self.current_page + 1)
 
-            self.images.append(photo)
+    def previous_page(self):
 
-            page_frame = CTkFrame(self.scroll, corner_radius=12)
+        if not self.pdf:
+            return
 
-            page_frame.pack(
-                pady=self.page_padding, padx=self.page_padding, fill="both", expand=True
-            )
+        if self.current_page > 0:
+            self.show_page(self.current_page - 1)
 
-            label = CTkLabel(page_frame, text="", image=photo)
+    # =========================================================
+    # INTERNAL
+    # =========================================================
+    def show_page(self, page_number):
 
-            label.pack(padx=10, pady=10)
+        page = self.pdf.load_page(page_number)
 
-    def clear(self):
+        matrix = fitz.Matrix(self.render_scale, self.render_scale)
 
-        for widget in self.scroll.winfo_children():
-            widget.destroy()
+        pix = page.get_pixmap(matrix=matrix, alpha=False)
 
-        self.images.clear()
+        image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
-        if self.doc:
-            self.doc.close()
-            self.doc = None
+        self.current_pil_image = image
 
-    def set_zoom(self, zoom):
+        self.current_page = page_number
 
-        self.zoom = zoom
+        self.page_label.configure(text=f"{self.current_page + 1} / {self.page_count}")
 
-        if self.doc:
-            path = self.doc.name
-            self.load_pdf(path)
+        self._update_image()
 
-    def zoom_in(self):
+    def _update_image(self):
 
-        self.set_zoom(self.zoom + 0.2)
+        if self.current_pil_image is None:
+            return
 
-    def zoom_out(self):
+        image = self.current_pil_image.copy()
 
-        new_zoom = max(0.4, self.zoom - 0.2)
+        width = max(self.image_label.winfo_width(), 100)
+        height = max(self.image_label.winfo_height(), 100)
 
-        self.set_zoom(new_zoom)
+        image.thumbnail((width, height))
+
+        self.tk_image = ImageTk.PhotoImage(image)
+
+        self.image_label.configure(image=self.tk_image)
+
+    # =========================================================
+    # EVENTS
+    # =========================================================
+    def _left_key(self, event):
+        self.previous_page()
+
+    def _right_key(self, event):
+        self.next_page()
+
+    def _on_resize(self, event):
+        self.after(50, self._update_image)
+
+
+class UserProfilePopup(CTkFrame):
+    def __init__(self, master, root, **kwarfs):
+        super().__init__(master)
+
+        self.master = master
+        self.root = root
+
+        self.configure(width=60, height=100, corner_radius=10)
+        self.propagate = False
+
+        self.settings_button = CTkButton(
+            self,
+        )
+        self.manual_button = None
+        self.log_out_button = None
