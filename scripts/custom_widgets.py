@@ -249,13 +249,33 @@ class logging_in_transition_screen(CTkFrame):
 
 
 class ImageButton(CTkLabel):
-    def __init__(self, image_path, root, **kwargs):
+    def __init__(self, root, image_path, sizex=40, sizey=40, **kwargs):
         super().__init__(root, **kwargs)
+        if not root:
+            warnings.warn(
+                "attempted to create image button with none root, imagebutton not created"
+            )
+            return
+        if not image_path:
+            warnings.warn(
+                "attempted to create image button with none imagepath, imagebutton not created"
+            )
+            return
+        if not pathlib.Path(image_path).exists():
+            warnings.warn(
+                "attempted to createa image button with an invalid image path, image button not created "
+            )
+            return
+
         self.image_path = image_path
+        self.sizex = sizex
+        self.sizey = sizey
 
         self.image_object = Image.open(self.image_path)
         self.ctk_image = CTkImage(
-            light_image=self.image_object, dark_image=self.image_object, size=(50, 50)
+            light_image=self.image_object,
+            dark_image=self.image_object,
+            size=(self.sizex, self.sizey),
         )
         self.configure(text="", image=self.ctk_image)
 
@@ -369,6 +389,23 @@ class GamesIcon(CTkFrame):
         self.configure(fg_color=self.original_color)
 
 
+class UserProfilePopup(CTkFrame):
+    def __init__(self, master, root, **kwarfs):
+        super().__init__(master)
+
+        self.master = master
+        self.root = root
+
+        self.configure(width=60, height=100, corner_radius=10)
+        self.propagate = False
+
+        self.settings_button = CTkButton(
+            self,
+        )
+        self.manual_button = None
+        self.log_out_button = None
+
+
 class PDFViewer(CTkFrame):
 
     def __init__(self, master, root, width=800, height=600, render_scale=2, **kwargs):
@@ -417,9 +454,6 @@ class PDFViewer(CTkFrame):
         self.root.bind("<Left>", self._left_key)
         self.root.bind("<Right>", self._right_key)
 
-    # =========================================================
-    # PUBLIC
-    # =========================================================
     def load(self, pdf_path):
 
         self.close()
@@ -457,9 +491,6 @@ class PDFViewer(CTkFrame):
         if self.current_page > 0:
             self.show_page(self.current_page - 1)
 
-    # =========================================================
-    # INTERNAL
-    # =========================================================
     def show_page(self, page_number):
 
         page = self.pdf.load_page(page_number)
@@ -494,9 +525,6 @@ class PDFViewer(CTkFrame):
 
         self.image_label.configure(image=self.tk_image)
 
-    # =========================================================
-    # EVENTS
-    # =========================================================
     def _left_key(self, event):
         self.previous_page()
 
@@ -505,20 +533,3 @@ class PDFViewer(CTkFrame):
 
     def _on_resize(self, event):
         self.after(50, self._update_image)
-
-
-class UserProfilePopup(CTkFrame):
-    def __init__(self, master, root, **kwarfs):
-        super().__init__(master)
-
-        self.master = master
-        self.root = root
-
-        self.configure(width=60, height=100, corner_radius=10)
-        self.propagate = False
-
-        self.settings_button = CTkButton(
-            self,
-        )
-        self.manual_button = None
-        self.log_out_button = None
