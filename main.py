@@ -8,6 +8,8 @@ from scripts.language_manager import LanguageManager
 from scripts.menus import *
 from scripts.menu_connectors import *
 
+from amharic_typing_game import AmharicTypingGame
+
 root = ctk.CTk()
 
 # managers
@@ -25,8 +27,14 @@ login_to_main_menu_connector = LoginToMainMenuConnector(
     root, login_menu, main_menu, language_manager, user_manager
 )
 
-login_menu.open_menu()
+# login_menu.open_menu()
 
+frame = CTkFrame(root)
+frame.pack(expand=True, fill="both")
+frame.propagate(False)
+
+game = AmharicTypingGame(frame, root)
+game.start_game()
 
 root.geometry("1000x600")
 root.minsize(1000, 600)
