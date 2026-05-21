@@ -263,7 +263,7 @@ class ImageButton(CTkLabel):
             return
         if not pathlib.Path(image_path).exists():
             warnings.warn(
-                "attempted to createa image button with an invalid image path, image button not created "
+                "attempted to createa image button with an invalid image path, image button not created"
             )
             return
 
@@ -303,14 +303,22 @@ class ImageButton(CTkLabel):
     def darken_image(self):
         enhancer = ImageEnhance.Brightness(self.image_object)
         dark_img = enhancer.enhance(0.8)
-        ctk_image = CTkImage(light_image=dark_img, dark_image=dark_img, size=(50, 50))
+        ctk_image = CTkImage(
+            light_image=dark_img,
+            dark_image=dark_img,
+            size=(self.sizex + 2, self.sizey + 2),
+        )
 
         self.configure(image=ctk_image)
 
     def lighten_image(self):
         enhancer = ImageEnhance.Brightness(self.image_object)
         dark_img = enhancer.enhance(1.2)
-        ctk_image = CTkImage(light_image=dark_img, dark_image=dark_img, size=(50, 50))
+        ctk_image = CTkImage(
+            light_image=dark_img,
+            dark_image=dark_img,
+            size=(self.sizex - 2, self.sizey - 2),
+        )
 
         self.configure(image=ctk_image)
 
