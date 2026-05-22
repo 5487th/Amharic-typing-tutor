@@ -47,9 +47,21 @@
         "en":"Login...",
         "am":"ይግቡ..."
     },
+    "Logout...":{
+        "en":"Logout...",
+        "am":"ይውጡ..."
+    },
     "logging you in":{
         "en":"logging you in",
-        "am":"እያስገባንኦት ነው"
+        "am":"እያስገባንዎት ነው"
+    },
+    "logging you out":{
+        "en":"logging you out",
+        "am":"እያስወጣንዎት ነው"
+    },
+    "please wait":{
+        "en":"please wait",
+        "am":"እባክዎን ይጠብቁ"
     },
     "choose an area":{
         "en":"choose an area",
@@ -59,12 +71,8 @@
         "en":"Manual",
         "am":"መመሪያ"
     },
-    "Games":{
-        "en":"Games",
-        "am":"ጨዋታዎች"
-    },
-    "Test":{
-        "en":"Test",
-        "am":"ፈተና"
+    "Logout":{
+        "en":"Logout",
+        "am":"አስወጣኝ"
     }
 }

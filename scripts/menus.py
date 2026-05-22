@@ -428,7 +428,10 @@ class MainMenu(Menu):
         self.user_manager: UserManager = user_manager
         self.language_manager: LanguageManager = language_manager
         self.root = root
-        self.on_user_profile_clicked = signal(f"on profile icon clicked {self}")
+
+        self.on_settings_button_pressed = signal(f"on settings icon clicked {self}")
+        self.on_help_button_pressed = signal(f"on help icon clicker {self}")
+        self.on_user_logged_out = signal(f"on log out button pressed {self}")
 
     def open_menu(self):
         if not self.user_manager.current_user:
@@ -440,24 +443,72 @@ class MainMenu(Menu):
         self.header_Frame = CTkFrame(self.main_frame, height=20, fg_color="transparent")
         self.header_Frame.pack(fill="x")
 
-        # profile
-        self.profile_picture_button = ImageButton(
-            self.user_manager.current_user.profile_picture_path,
+        # settings button
+        settings_button_image_path = (
+            pathlib.Path(__file__).parent.parent
+            / "assets"
+            / "images"
+            / "settings_icon.png"
+        )
+        self.settings_button = ImageButton(
             self.header_Frame,
+            image_path=settings_button_image_path,
+            sizex=25,
+            sizey=25,
+            size_change_amount=1,
         )
-        self.profile_picture_button.pack(side="left", anchor="w", pady=10, padx=10)
-        self.profile_picture_button.on_mouse_click.connect(self.on_user_profile_pressed)
+        self.settings_button.on_mouse_click.connect(self.on_settings_icon_pressed)
+        self.settings_button.pack(side="left", padx=10, pady=10)
 
-        # tittle
-        self.choose_an_activity_label = CTkLabel(
-            self.header_Frame, text="Choose an activity", font=("Roboto", 40)
+        # help button
+        help_button_image_path = (
+            pathlib.Path(__file__).parent.parent / "assets" / "images" / "help_icon.png"
         )
-        self.choose_an_activity_label.pack(side="top", pady=15)
+        self.help_button = ImageButton(
+            self.header_Frame,
+            image_path=help_button_image_path,
+            sizex=25,
+            sizey=25,
+            size_change_amount=1,
+        )
+        self.help_button.on_mouse_click.connect(self.on_help_icon_pressed)
+        self.help_button.pack(side="left", padx=0, pady=10)
+
+        # log out button
+        logout_button_image_path = (
+            pathlib.Path(__file__).parent.parent
+            / "assets"
+            / "images"
+            / "log_out_icon.png"
+        )
+        self.logout_button = ImageButton(
+            self.header_Frame,
+            image_path=logout_button_image_path,
+            sizex=25,
+            sizey=25,
+            size_change_amount=1,
+        )
+        self.logout_button.on_mouse_click.connect(self.on_logout_icon_pressed)
+        self.logout_button.pack(side="left", padx=10, pady=10)
 
         self.main_scrollable_frame = CTkScrollableFrame(
-            self.main_frame, corner_radius=0, fg_color="transparent"
+            self.main_frame, corner_radius=0
         )
+
         self.main_scrollable_frame.pack(expand=True, fill="both")
+
+        self.log_out_confirmation_popup = UserlogoutPopUp(
+            self.user_manager.current_user,
+            self.language_manager,
+            self.user_manager,
+            self.main_frame,
+        )
+        self.log_out_confirmation_popup.on_logout_button_pressed.connect(
+            self.on_logout_confirmation_button_pressed
+        )
+        self.log_out_confirmation_popup.on_cancel_logout_button_pressed.connect(
+            self.on_cancel_logout_button_pressed
+        )
 
         self.main_frame.place(
             relwidth=1, relheight=1, relx=0.5, rely=0.5, anchor="center"
@@ -467,5 +518,102 @@ class MainMenu(Menu):
     def close_menu(self):
         self.main_frame.place_forget()
 
-    def on_user_profile_pressed(self, sender):
-        self.on_user_profile_clicked.send(self)
+    def on_settings_icon_pressed(self, sender):
+        self.on_settings_button_pressed.send(self)
+
+    def on_help_icon_pressed(self, sender):
+        self.on_help_button_pressed.send(self)
+
+    def on_logout_icon_pressed(self, sender):
+        self.header_Frame.pack_forget()
+        self.main_scrollable_frame.pack_forget()
+        self.log_out_confirmation_popup.place(relx=0.5, rely=0.5, anchor="center")
+
+    def on_logout_confirmation_button_pressed(self, sender, user):
+        self.user_manager.logout()
+        self.on_user_logged_out.send(self, user=user)
+
+    def on_cancel_logout_button_pressed(self, sender):
+        self.header_Frame.pack(fill="x")
+        self.main_scrollable_frame.pack(expand=True, fill="both")
+        self.log_out_confirmation_popup.place_forget()
+
+
+class ManualMenu(Menu):
+    def __init__(self, root, language_manager):
+        super().__init__()
+        if not root:
+            warnings.warn(
+                "attempted to create manual menu with none root, manual menu not created"
+            )
+            return
+        if not language_manager:
+            if not root:
+                warnings.warn(
+                    "attempted to create manual menu with none language manager, manual menu not created"
+                )
+            return
+
+        self.root = root
+        self.on_back_button_pressed = signal(f"on back button pressed {self}")
+        self.language_manager: LanguageManager = language_manager
+
+        self.main_frame = None
+        self.header_frame = None
+        self.back_button = None
+        self.tittle = None
+        self.pdf_viewer = None
+
+    def open_menu(self):
+        if not self.main_frame:
+            self.main_frame = CTkFrame(self.root, fg_color="transparent")
+            self.main_frame.pack(expand=True, fill="both")
+        else:
+            self.main_frame.pack()
+        self.header_frame = CTkFrame(self.main_frame, fg_color="transparent")
+        self.header_frame.pack(fill="x", side="top")
+
+        back_button_path = (
+            pathlib.Path(__file__).parent.parent / "assets" / "images" / "back_icon.png"
+        )
+        if not self.back_button:
+            self.back_button = ImageButton(self.header_frame, back_button_path, 30, 30)
+            self.back_button.pack(side="left", pady=10, padx=10)
+            self.back_button.on_mouse_click.connect(self.on_back_icon_pressed)
+
+        if not self.tittle:
+            self.tittle = CTkLabel(
+                self.header_frame, text="Manual", font=("Roboto", 25)
+            )
+            self.language_manager.register_widget(self.tittle, "Manual")
+            self.tittle.pack(side="left", pady=10)
+
+        pdf_path = None
+        if self.language_manager.current_lang == "am":
+            pdf_path = (
+                pathlib.Path(__file__).parent.parent
+                / "assets"
+                / "manual"
+                / "Amharic_Typing_Guide_amharic_version.pdf"
+            )
+        else:
+            pdf_path = (
+                pathlib.Path(__file__).parent.parent
+                / "assets"
+                / "manual"
+                / "Amharic_Typing_Guide_english_version.pdf"
+            )
+
+        if not self.pdf_viewer:
+            self.pdf_viewer = PDFViewer(self.main_frame, self.root)
+            if pathlib.Path(pdf_path).exists():
+                self.pdf_viewer.load(pdf_path)
+            self.pdf_viewer.pack(expand=True, fill="both", side="bottom")
+        if pathlib.Path(pdf_path).exists():
+            self.pdf_viewer.load(pdf_path)
+
+    def close_menu(self):
+        self.main_frame.place_forget()
+
+    def on_back_icon_pressed(self, sender):
+        self.on_back_button_pressed.send(self)

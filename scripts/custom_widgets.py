@@ -103,8 +103,10 @@ class UserloginPopUp(CTkFrame):
     ):
         super().__init__(master, **kwargs)
 
-        self.on_login_button_pressed = signal("on_login_button_presssed")
-        self.on_cancel_login_button_pressed = signal("on_cancel_button_presssed")
+        self.on_login_button_pressed = signal(f"on_login_button_presssed {self}")
+        self.on_cancel_login_button_pressed = signal(
+            f"on_cancel_button_presssed {self}"
+        )
 
         self.root = master
         self.language_manager = language_manager
@@ -193,18 +195,101 @@ class UserloginPopUp(CTkFrame):
         self.on_cancel_login_button_pressed.send(self)
 
 
-class logging_in_transition_screen(CTkFrame):
+class UserlogoutPopUp(CTkFrame):
+    def __init__(
+        self,
+        user: User,
+        language_manager: LanguageManager,
+        user_manager: UserManager,
+        master,
+        **kwargs,
+    ):
+        super().__init__(master, **kwargs)
+
+        self.on_logout_button_pressed = signal(f"on_logout_button_presssed {self}")
+        self.on_cancel_logout_button_pressed = signal(
+            f"on_cancel_button_presssed{self}"
+        )
+
+        self.root = master
+        self.language_manager = language_manager
+        self.user_manager = user_manager
+        self.user = user
+
+        self.configure(width=300, height=340)
+
+        self.pack_propagate(False)
+
+        self.login_to_label = CTkLabel(self, font=("Roboto", 40))
+        self.language_manager.register_widget(self.login_to_label, "Logout...")
+        self.login_to_label.pack(pady=10)
+
+        image_object = Image.open(self.user.profile_picture_path)
+        ctk_image = CTkImage(
+            light_image=image_object, dark_image=image_object, size=(120, 120)
+        )
+        self.user_profile = CTkLabel(self, text="", image=ctk_image)
+        self.user_profile.pack(pady=10)
+
+        self.username_label = CTkLabel(self, text=user.username, font=("Roboto", 30))
+        self.username_label.pack(pady=10)
+
+        self.username_buttons_buffer = CTkFrame(self, height=10, fg_color="transparent")
+        self.username_buttons_buffer.pack()
+
+        self.buttons_frame = CTkFrame(
+            self, width=285, height=50, fg_color="transparent"
+        )
+        self.buttons_frame.pack(side="bottom", pady=10)
+        self.buttons_frame.pack_propagate(False)
+
+        self.logout_button = CTkButton(
+            self.buttons_frame,
+            height=50,
+            width=135,
+            corner_radius=10,
+            font=("Roboto", 25),
+            command=self.logout_button_pressed,
+        )
+        self.language_manager.register_widget(self.logout_button, "Logout")
+        self.logout_button.pack(side="left", padx=5)
+
+        self.cancel_logout_button = CTkButton(
+            self.buttons_frame,
+            height=50,
+            width=135,
+            corner_radius=10,
+            font=("Roboto", 25),
+            command=self.Cancel_button_pressed,
+        )
+        self.language_manager.register_widget(self.cancel_logout_button, "Cancel")
+        self.cancel_logout_button.pack(side="right", padx=5)
+
+        self.root.update_idletasks()
+
+    def logout_button_pressed(self):
+        self.on_logout_button_pressed.send(self, user=self.user)
+
+    def Cancel_button_pressed(self):
+        self.on_cancel_logout_button_pressed.send(self)
+
+
+class logging_in_out_transition_screen(CTkFrame):
     def __init__(
         self,
         language_manager: LanguageManager,
         user_manager: UserManager,
+        user: User,
         root,
+        mode="in",
         **kwargs,
     ):
         super().__init__(root, **kwargs)
 
         self.language_manager = language_manager
         self.user_manager = user_manager
+        self.user = user
+        self.mode = mode
 
         self.configure()
         self.place_configure(relwidth=1, relheight=1)
@@ -213,7 +298,10 @@ class logging_in_transition_screen(CTkFrame):
         self.username_profile_frame = CTkFrame(self, fg_color="transparent")
         self.username_profile_frame.place(relx=0.5, rely=0.3, anchor="center")
 
-        image_object = Image.open(user_manager.current_user.profile_picture_path)
+        image_object = user_manager.default_profile_picture_path
+        if pathlib.Path(user.profile_picture_path).exists:
+            image_object = Image.open(user.profile_picture_path)
+
         ctk_image = CTkImage(
             light_image=image_object, dark_image=image_object, size=(280, 280)
         )
@@ -224,7 +312,7 @@ class logging_in_transition_screen(CTkFrame):
 
         self.user_name_label = CTkLabel(
             self.username_profile_frame,
-            text=user_manager.current_user.username,
+            text=user.username,
             font=("Roboto", 40),
         )
         self.user_name_label.pack(pady=10)
@@ -234,7 +322,13 @@ class logging_in_transition_screen(CTkFrame):
 
         # dot animation
         self.dot_count = 0
-        self.base_text = self.language_manager.translate("logging you in")
+        if mode == "in":
+            self.base_text = self.language_manager.translate("logging you in")
+        elif mode == "out":
+            self.base_text = self.language_manager.translate("logging you out")
+        else:
+            self.base_text = self.language_manager.translate("please wait")
+
         root.update_idletasks()
 
         self.animate_dots()
@@ -249,7 +343,9 @@ class logging_in_transition_screen(CTkFrame):
 
 
 class ImageButton(CTkLabel):
-    def __init__(self, root, image_path, sizex=40, sizey=40, **kwargs):
+    def __init__(
+        self, root, image_path, sizex=40, sizey=40, size_change_amount=0, **kwargs
+    ):
         super().__init__(root, **kwargs)
         if not root:
             warnings.warn(
@@ -270,7 +366,7 @@ class ImageButton(CTkLabel):
         self.image_path = image_path
         self.sizex = sizex
         self.sizey = sizey
-
+        self.size_amount = size_change_amount
         self.image_object = Image.open(self.image_path)
         self.ctk_image = CTkImage(
             light_image=self.image_object,
@@ -306,7 +402,7 @@ class ImageButton(CTkLabel):
         ctk_image = CTkImage(
             light_image=dark_img,
             dark_image=dark_img,
-            size=(self.sizex + 2, self.sizey + 2),
+            size=(self.sizex + self.size_amount, self.sizey + self.size_amount),
         )
 
         self.configure(image=ctk_image)
@@ -317,7 +413,7 @@ class ImageButton(CTkLabel):
         ctk_image = CTkImage(
             light_image=dark_img,
             dark_image=dark_img,
-            size=(self.sizex - 2, self.sizey - 2),
+            size=(self.sizex - self.size_amount, self.sizey - self.size_amount),
         )
 
         self.configure(image=ctk_image)

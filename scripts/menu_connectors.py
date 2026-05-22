@@ -41,10 +41,10 @@ class LoginToSignupConnector:
             text_color="red"
         )
         self.signup_menu.password_character_length_requirement_label.configure(
-            text="green"
+            text_color="green"
         )
         self.signup_menu.password_character_type_requirements_label.configure(
-            text="green"
+            text_color="green"
         )
 
         self.signup_menu.close_menu()
@@ -93,17 +93,59 @@ class LoginToMainMenuConnector:
         self.root = root
 
         self.login_menu.on_user_logged_in.connect(self.on_user_logged_in)
+        self.main_menu.on_user_logged_out.connect(self.on_user_logged_out)
 
     def on_user_logged_in(self, sender, user):
         self.login_menu.close_menu()
 
-        self.transition_screen = logging_in_transition_screen(
-            self.language_manager, self.use_manager, self.root
+        self.transition_screen = logging_in_out_transition_screen(
+            self.language_manager, self.use_manager, user, self.root, mode="in"
         )
         self.transition_screen.place(relx=0.5, rely=0.5, anchor="center")
         self.root.update_idletasks()
-        self.root.after(2700, self.end_transition_screen)
+        self.root.after(2700, self.end_transition_to_main_menu)
 
-    def end_transition_screen(self):
+    def on_user_logged_out(self, sender, user):
+        self.main_menu.close_menu()
+
+        self.transition_screen = logging_in_out_transition_screen(
+            self.language_manager, self.use_manager, user, self.root, mode="out"
+        )
+        self.transition_screen.place(relx=0.5, rely=0.5, anchor="center")
+        self.root.update_idletasks()
+        self.root.after(2700, self.end_transition_to_login_menu)
+
+    def end_transition_to_main_menu(self):
         self.transition_screen.place_forget()
+        self.main_menu.open_menu()
+
+    def end_transition_to_login_menu(self):
+        self.transition_screen.place_forget()
+        self.login_menu.open_menu()
+
+
+class MainMenuToManualMenuConnector:
+    def __init__(self, main_menu: MainMenu, manual_menu: ManualMenu):
+        if not main_menu:
+            warnings.warn(
+                "attempted to create main menu to manual menu connection with none main menu, manual connector not created"
+            )
+            return
+        if not manual_menu:
+            warnings.warn(
+                "attempted to create main menu to manual menu connection with none manual menu, manual connector not created"
+            )
+            return
+        self.main_menu: MainMenu = main_menu
+        self.manual_menu: ManualMenu = manual_menu
+
+        self.main_menu.on_help_button_pressed.connect(self.on_help_button_pressed)
+        self.manual_menu.on_back_button_pressed.connect(self.on_back_button_pressed)
+
+    def on_help_button_pressed(self, sender):
+        self.main_menu.close_menu()
+        self.manual_menu.open_menu()
+
+    def on_back_button_pressed(self, sender):
+        self.manual_menu.close_menu()
         self.main_menu.open_menu()
