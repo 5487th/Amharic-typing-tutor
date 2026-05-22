@@ -27,13 +27,16 @@ class LoginMenu(Menu):
         self.main_frame = CTkFrame(self.root, fg_color="transparent")
 
         # languages selection drop down
-        self.languages = ["English", "አማርኛ"]
+        self.languages = ["English", "አማረኛ"]
         self.language_dropdown = ctk.CTkOptionMenu(
             self.main_frame,
             values=self.languages,
             command=self.on_languge_drop_down_value_changed,
         )
-
+        if self.language_manager.current_lang == "am":
+            self.language_dropdown.set("አማረኛ")
+        else:
+            self.language_dropdown.set("English")
         # choose a user label
         self.choose_a_user_label = ctk.CTkLabel(self.main_frame, font=("Roboto", 40))
         self.language_manager.register_widget(
@@ -108,7 +111,7 @@ class LoginMenu(Menu):
                 self.language_manager.set_language(
                     self.language_manager.ENGLISH_LANGUAGE_KEY
                 )
-            if value == "አማርኛ":
+            if value == "አማረኛ":
                 self.language_manager.set_language(
                     self.language_manager.AMHARIC_LANGUAGE_KEY
                 )
@@ -458,7 +461,7 @@ class MainMenu(Menu):
             size_change_amount=1,
         )
         self.settings_button.on_mouse_click.connect(self.on_settings_icon_pressed)
-        self.settings_button.pack(side="left", padx=10, pady=10)
+        self.settings_button.pack(side="left", padx=10, pady=20)
 
         # help button
         help_button_image_path = (
@@ -472,7 +475,7 @@ class MainMenu(Menu):
             size_change_amount=1,
         )
         self.help_button.on_mouse_click.connect(self.on_help_icon_pressed)
-        self.help_button.pack(side="left", padx=0, pady=10)
+        self.help_button.pack(side="left", padx=0, pady=20)
 
         # log out button
         logout_button_image_path = (
@@ -489,7 +492,16 @@ class MainMenu(Menu):
             size_change_amount=1,
         )
         self.logout_button.on_mouse_click.connect(self.on_logout_icon_pressed)
-        self.logout_button.pack(side="left", padx=10, pady=10)
+        self.logout_button.pack(side="left", padx=10, pady=20)
+
+        self.tittle_frame = CTkFrame(self.header_Frame, corner_radius=10)
+        self.tittle_frame.place(relx=0.5, rely=0.5, anchor="center")
+
+        self.tittle = CTkLabel(
+            self.tittle_frame, text="play a typing game", font=("Roboto", 30)
+        )
+        self.language_manager.register_widget(self.tittle, "play a typing game")
+        self.tittle.pack(pady=10, padx=10)
 
         self.main_scrollable_frame = CTkScrollableFrame(
             self.main_frame, corner_radius=0
@@ -569,15 +581,19 @@ class ManualMenu(Menu):
             self.main_frame = CTkFrame(self.root, fg_color="transparent")
             self.main_frame.pack(expand=True, fill="both")
         else:
-            self.main_frame.pack()
-        self.header_frame = CTkFrame(self.main_frame, fg_color="transparent")
-        self.header_frame.pack(fill="x", side="top")
+            self.main_frame.pack(expand=True, fill="both")
+
+        if not self.header_frame:
+            self.header_frame = CTkFrame(self.main_frame, fg_color="transparent")
+            self.header_frame.pack(fill="x", side="top")
 
         back_button_path = (
             pathlib.Path(__file__).parent.parent / "assets" / "images" / "back_icon.png"
         )
         if not self.back_button:
-            self.back_button = ImageButton(self.header_frame, back_button_path, 30, 30)
+            self.back_button = ImageButton(
+                self.header_frame, back_button_path, 30, 30, 1
+            )
             self.back_button.pack(side="left", pady=10, padx=10)
             self.back_button.on_mouse_click.connect(self.on_back_icon_pressed)
 
@@ -608,12 +624,13 @@ class ManualMenu(Menu):
             self.pdf_viewer = PDFViewer(self.main_frame, self.root)
             if pathlib.Path(pdf_path).exists():
                 self.pdf_viewer.load(pdf_path)
-            self.pdf_viewer.pack(expand=True, fill="both", side="bottom")
+            self.pdf_viewer.pack(expand=True, fill="both", side="top")
+
         if pathlib.Path(pdf_path).exists():
             self.pdf_viewer.load(pdf_path)
 
     def close_menu(self):
-        self.main_frame.place_forget()
+        self.main_frame.pack_forget()
 
     def on_back_icon_pressed(self, sender):
         self.on_back_button_pressed.send(self)

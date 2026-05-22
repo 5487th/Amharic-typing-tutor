@@ -74,5 +74,9 @@
     "Logout":{
         "en":"Logout",
         "am":"አስወጣኝ"
+    },
+    "play a typing game":{
+        "en":"play a typing game",
+        "am":"የ ጽሁፍ ጨዋታ ይጫወቱ"
     }
 }
