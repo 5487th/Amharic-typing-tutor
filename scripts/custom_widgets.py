@@ -33,7 +33,10 @@ class UserProfileCard(CTkFrame):
 
         self.profile_picture = None
 
-        if pathlib.Path(user.profile_picture_path).exists():
+        if (
+            user.profile_picture_path
+            and pathlib.Path(user.profile_picture_path).exists()
+        ):
             image_object = Image.open(user.profile_picture_path)
             ctk_image = CTkImage(
                 light_image=image_object, dark_image=image_object, size=(120, 120)
@@ -124,7 +127,15 @@ class UserloginPopUp(CTkFrame):
         self.language_manager.register_widget(self.login_to_label, "Login...")
         self.login_to_label.pack(pady=10)
 
-        image_object = Image.open(self.user.profile_picture_path)
+        image_object = None
+        if (
+            user.profile_picture_path
+            and pathlib.Path(self.user.profile_picture_path).exists()
+        ):
+            image_object = Image.open(self.user.profile_picture_path)
+        else:
+            image_object = Image.open(self.user_manager.default_profile_picture_path)
+
         ctk_image = CTkImage(
             light_image=image_object, dark_image=image_object, size=(120, 120)
         )
@@ -224,7 +235,12 @@ class UserlogoutPopUp(CTkFrame):
         self.language_manager.register_widget(self.login_to_label, "Logout...")
         self.login_to_label.pack(pady=10)
 
-        image_object = Image.open(self.user.profile_picture_path)
+        image_object = Image.open(user_manager.default_profile_picture_path)
+        if (
+            user.profile_picture_path
+            and pathlib.Path(user.profile_picture_path).exists()
+        ):
+            image_object = Image.open(self.user.profile_picture_path)
         ctk_image = CTkImage(
             light_image=image_object, dark_image=image_object, size=(120, 120)
         )
@@ -298,8 +314,11 @@ class logging_in_out_transition_screen(CTkFrame):
         self.username_profile_frame = CTkFrame(self, fg_color="transparent")
         self.username_profile_frame.place(relx=0.5, rely=0.3, anchor="center")
 
-        image_object = user_manager.default_profile_picture_path
-        if pathlib.Path(user.profile_picture_path).exists:
+        image_object = Image.open(user_manager.default_profile_picture_path)
+        if (
+            user.profile_picture_path
+            and pathlib.Path(user.profile_picture_path).exists()
+        ):
             image_object = Image.open(user.profile_picture_path)
 
         ctk_image = CTkImage(
