@@ -19,7 +19,7 @@ class User:
 
 class UserManager:
     def __init__(self):
-        self.current_user = None
+        self.current_user: User = None
 
         self.usermanager_database_name = "users"
 
