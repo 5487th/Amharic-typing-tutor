@@ -7,10 +7,14 @@ import pathlib
 
 
 class User:
-    def __init__(self, username, password, profile_picture_path=""):
+    def __init__(
+        self, username, password, profile_picture_path="", language="en", theme="system"
+    ):
         self.username = username
         self.password = password
         self.profile_picture_path = profile_picture_path
+        self.language = language
+        self.theme = theme
 
 
 class UserManager:
@@ -40,7 +44,7 @@ class UserManager:
         self.users_table_name = "users"
         self.usermanager_database_cursor.execute(
             f"""CREATE TABLE IF NOT EXISTS {self.users_table_name}
-                                            (username TEXT PRIMARY KEY, password TEXT, profile_path TEXT)"""
+                                            (username TEXT PRIMARY KEY, password TEXT, profile_path TEXT, language TEXT, theme TEXT)"""
         )
 
         self.on_user_created = signal("user_created")
@@ -49,10 +53,20 @@ class UserManager:
         self.on_user_logged_in = signal("user_logged_in")
         self.on_user_logged_out = signal("user_logged_out")
 
-        self.on_user_change_password = signal("user_changed_password")
+        self.on_user_changed_password = signal("user_changed_password")
         self.on_user_changed_username = signal("user_changed_username")
 
-    def create_user(self, username, password="", profile_picture_path="") -> bool:
+        self.on_user_language_changed = signal("on_user_language_changed")
+        self.on_user_theme_changed = signal("on_user_theme_changed")
+
+    def create_user(
+        self,
+        username,
+        password="",
+        profile_picture_path="",
+        language="en",
+        theme="system",
+    ) -> bool:
         """
         creates users, with a hashed password and adds them to the database
 
@@ -63,6 +77,7 @@ class UserManager:
 
         Returns:
         bool: wether or not the user creation succeded.
+
         """
 
         self.usermanager_database_cursor.execute(
@@ -70,9 +85,6 @@ class UserManager:
             (username,),
         )
         user_already_exists = self.usermanager_database_cursor.fetchone()
-
-        if profile_picture_path == "":
-            profile_picture_path = str(self.default_profile_picture_path.resolve())
 
         if not username:
             warnings.warn(
@@ -96,12 +108,12 @@ class UserManager:
         hashed_password = ph.hash(password)
 
         self.usermanager_database_cursor.execute(
-            f"INSERT INTO {self.users_table_name} VALUES (?, ?, ?)",
-            (username, hashed_password, profile_picture_path),
+            f"INSERT INTO {self.users_table_name} VALUES (?, ?, ?, ?, ?)",
+            (username, hashed_password, profile_picture_path, language, theme),
         )
         self.usermanager_database.commit()
         self.on_user_created.send(
-            self, user=User(username, password, profile_picture_path)
+            self, user=User(username, password, profile_picture_path, language, theme)
         )
 
     def delete_user(self, username_of_user_to_be_deleted):
@@ -113,7 +125,7 @@ class UserManager:
             row = self.usermanager_database_cursor.fetchone()
             deleted_user = None
             if row:
-                deleted_user = User(row[0], row[1], row[2])
+                deleted_user = User(row[0], row[1], row[2], row[3], row[4])
 
             self.usermanager_database_cursor.execute(
                 f"DELETE FROM {self.users_table_name} WHERE username = ?",
@@ -154,7 +166,7 @@ class UserManager:
         )
         row = self.usermanager_database_cursor.fetchone()
         if row:
-            user = User(row[0], row[1], row[2])
+            user = User(row[0], row[1], row[2], row[3], row[4])
             return user
         else:
             return None
@@ -166,7 +178,13 @@ class UserManager:
         users_tuple_list = self.usermanager_database_cursor.fetchall()
         users_list = []
         for user_tuple in users_tuple_list:
-            user = User(user_tuple[0], user_tuple[1], user_tuple[2])
+            user = User(
+                user_tuple[0],
+                user_tuple[1],
+                user_tuple[2],
+                user_tuple[3],
+                user_tuple[4],
+            )
             users_list.append(user)
         return users_list
 
@@ -175,10 +193,12 @@ class UserManager:
             warnings.warn(
                 "called change user functoin with a 'none' username, password not changed"
             )
+            return
         if not new_password:
             warnings.warn(
                 "called change user password with a 'None' new password, password not changed"
             )
+            return
         self.usermanager_database_cursor.execute(
             f"SELECT * FROM {self.users_table_name} WHERE username = ?", (username,)
         )
@@ -190,7 +210,7 @@ class UserManager:
             )
             return
 
-        user = User(row[0], row[1], row[2])
+        user = User(row[0], row[1], row[2], row[3], row[4])
 
         ph = PasswordHasher()
         hashed_password = ph.hash(new_password)
@@ -199,9 +219,15 @@ class UserManager:
             (hashed_password, username),
         )
         self.usermanager_database.commit()
-        self.on_user_change_password.send(
+        self.on_user_changed_password.send(
             self,
-            user=User(user.username, new_password, user.profile_picture_path),
+            user=User(
+                user.username,
+                new_password,
+                user.profile_picture_path,
+                user.language,
+                user.theme,
+            ),
         )
 
     def change_username(self, old_username, new_username):
@@ -250,6 +276,54 @@ class UserManager:
         self.on_user_changed_username.send(
             self, old_username=old_username, new_username=new_username
         )
+
+    def change_user_language(self, username, language):
+        if not username:
+            warnings.warn(
+                "called change user language functoin with a 'none' username, language not changed"
+            )
+            return
+        if not language:
+            warnings.warn(
+                "called change user language with a 'None' language, language not changed"
+            )
+            return
+        if language in ["en", "am"]:
+            self.usermanager_database_cursor.execute(
+                f"UPDATE {self.users_table_name} SET language = ? WHERE username = ?",
+                (language, username),
+            )
+            self.usermanager_database.commit()
+            self.on_user_language_changed.send(self, self.get_user(username))
+
+        else:
+            warnings.warn(
+                "called change user langugae with invalid language entered, user language not changed"
+            )
+
+    def change_user_theme(self, username, theme):
+        if not username:
+            warnings.warn(
+                "called change user language functoin with a 'none' username, language not changed"
+            )
+            return
+        if not theme:
+            warnings.warn(
+                "called change user language with a 'None' language, language not changed"
+            )
+            return
+
+        if theme in ["dark", "light", "system"]:
+            self.usermanager_database_cursor.execute(
+                f"UPDATE {self.users_table_name} SET theme = ? WHERE username = ?",
+                (theme, username),
+            )
+            self.usermanager_database.commit()
+            self.on_user_theme_changed.send(self, self.get_user(username))
+        else:
+            warnings.warn(
+                "called change user theme with invalid language entered, user language not changed"
+            )
 
     def User_exists(self, username):
         if not username:
