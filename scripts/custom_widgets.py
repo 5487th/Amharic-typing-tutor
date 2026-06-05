@@ -1,9 +1,12 @@
+from __future__ import annotations
 from customtkinter import *
 import warnings
 from blinker import signal
 from PIL import Image, ImageEnhance, ImageTk
 import pathlib
 import fitz
+import tkinter as tk
+from tkinter import Canvas, Frame
 
 from scripts.user_manager import User
 from scripts.user_manager import UserManager
@@ -363,7 +366,14 @@ class logging_in_out_transition_screen(CTkFrame):
 
 class ImageButton(CTkLabel):
     def __init__(
-        self, root, image_path, sizex=40, sizey=40, size_change_amount=0, **kwargs
+        self,
+        root,
+        light_image_path,
+        dark_image_path,
+        sizex=40,
+        sizey=40,
+        size_change_amount=0,
+        **kwargs,
     ):
         super().__init__(root, **kwargs)
         if not root:
@@ -371,25 +381,33 @@ class ImageButton(CTkLabel):
                 "attempted to create image button with none root, imagebutton not created"
             )
             return
-        if not image_path:
+        if not dark_image_path or not light_image_path:
             warnings.warn(
-                "attempted to create image button with none imagepath, imagebutton not created"
+                "attempted to create image button with none light ot dark image path, imagebutton not created"
             )
             return
-        if not pathlib.Path(image_path).exists():
+        if (
+            not pathlib.Path(dark_image_path).exists()
+            or not pathlib.Path(light_image_path).exists()
+        ):
             warnings.warn(
-                "attempted to createa image button with an invalid image path, image button not created"
+                "attempted to create an image button with an invalid image path, image button not created"
             )
             return
 
-        self.image_path = image_path
+        self.light_image_path = light_image_path
+        self.dark_image_path = dark_image_path
+
         self.sizex = sizex
         self.sizey = sizey
         self.size_amount = size_change_amount
-        self.image_object = Image.open(self.image_path)
+
+        self.light_image_object = Image.open(self.light_image_path)
+        self.dark_image_object = Image.open(self.dark_image_path)
+
         self.ctk_image = CTkImage(
-            light_image=self.image_object,
-            dark_image=self.image_object,
+            light_image=self.light_image_object,
+            dark_image=self.dark_image_object,
             size=(self.sizex, self.sizey),
         )
         self.configure(text="", image=self.ctk_image)
@@ -416,26 +434,26 @@ class ImageButton(CTkLabel):
         self.on_mouse_click.send(self)
 
     def darken_image(self):
-        enhancer = ImageEnhance.Brightness(self.image_object)
-        dark_img = enhancer.enhance(0.8)
-        ctk_image = CTkImage(
-            light_image=dark_img,
-            dark_image=dark_img,
-            size=(self.sizex + self.size_amount, self.sizey + self.size_amount),
+        light_img = ImageEnhance.Brightness(self.light_image_object).enhance(0.6)
+        dark_img = ImageEnhance.Brightness(self.dark_image_object).enhance(1.5)
+        self.configure(
+            image=CTkImage(
+                light_image=light_img,
+                dark_image=dark_img,
+                size=(self.sizex + self.size_amount, self.sizey + self.size_amount),
+            )
         )
-
-        self.configure(image=ctk_image)
 
     def lighten_image(self):
-        enhancer = ImageEnhance.Brightness(self.image_object)
-        dark_img = enhancer.enhance(1.2)
-        ctk_image = CTkImage(
-            light_image=dark_img,
-            dark_image=dark_img,
-            size=(self.sizex - self.size_amount, self.sizey - self.size_amount),
+        light_img = ImageEnhance.Brightness(self.light_image_object).enhance(1.5)
+        dark_img = ImageEnhance.Brightness(self.dark_image_object).enhance(0.6)
+        self.configure(
+            image=CTkImage(
+                light_image=light_img,
+                dark_image=dark_img,
+                size=(self.sizex - self.size_amount, self.sizey - self.size_amount),
+            )
         )
-
-        self.configure(image=ctk_image)
 
 
 class GamesIcon(CTkFrame):

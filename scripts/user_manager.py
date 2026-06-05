@@ -13,8 +13,10 @@ class User:
         self.username = username
         self.password = password
         self.profile_picture_path = profile_picture_path
-        self.language = language
-        self.theme = theme
+        if language in ["en", "am"]:
+            self.language = language
+        if theme in ["light", "dark", "system"]:
+            self.theme = theme
 
 
 class UserManager:
@@ -219,6 +221,9 @@ class UserManager:
             (hashed_password, username),
         )
         self.usermanager_database.commit()
+        if self.current_user and self.current_user.username == username:
+            self.current_user.theme = hashed_password
+
         self.on_user_changed_password.send(
             self,
             user=User(
@@ -273,6 +278,9 @@ class UserManager:
         )
         self.usermanager_database.commit()
 
+        if self.current_user and self.current_user.username == old_username:
+            self.current_user.username = new_username
+
         self.on_user_changed_username.send(
             self, old_username=old_username, new_username=new_username
         )
@@ -294,22 +302,28 @@ class UserManager:
                 (language, username),
             )
             self.usermanager_database.commit()
-            self.on_user_language_changed.send(self, self.get_user(username))
+
+            if self.current_user and self.current_user.username == username:
+                self.current_user.language = language
+
+            self.on_user_language_changed.send(
+                self, user=self.get_user(username), language=language
+            )
 
         else:
             warnings.warn(
-                "called change user langugae with invalid language entered, user language not changed"
+                "called change user language with invalid language entered, user language not changed"
             )
 
     def change_user_theme(self, username, theme):
         if not username:
             warnings.warn(
-                "called change user language functoin with a 'none' username, language not changed"
+                "called change user theme functoin with a 'none' username, theme not changed"
             )
             return
         if not theme:
             warnings.warn(
-                "called change user language with a 'None' language, language not changed"
+                "called change user theme with a 'None' theme, theme not changed"
             )
             return
 
@@ -319,13 +333,18 @@ class UserManager:
                 (theme, username),
             )
             self.usermanager_database.commit()
-            self.on_user_theme_changed.send(self, self.get_user(username))
+
+            if self.current_user and self.current_user.username == username:
+                self.current_user.theme = theme
+
+            self.on_user_theme_changed.send(self, user=self.get_user(username))
+
         else:
             warnings.warn(
-                "called change user theme with invalid language entered, user language not changed"
+                "called change user theme with invalid theme entered, user theme not changed"
             )
 
-    def User_exists(self, username):
+    def user_exists(self, username):
         if not username:
             warnings.warn(
                 "Called user_exists function with 'None' username, returning false"

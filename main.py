@@ -19,7 +19,6 @@ login_menu = LoginMenu(root, language_manager, user_manager)
 signup_menu = SignUpMenu(root, language_manager, user_manager)
 main_menu = MainMenu(root, user_manager, language_manager)
 manual_menu = ManualMenu(root, language_manager)
-
 login_menu.open_menu()
 
 
@@ -33,7 +32,6 @@ main_menu_to_manual_menu = MainMenuToManualMenuConnector(main_menu, manual_menu)
 root.geometry("1000x600")
 root.minsize(1000, 600)
 root.title("Amharic typing games")
-ctk.set_appearance_mode("light")
 
 # icon
 app_id = "Amharic.Typing.games.Id"
