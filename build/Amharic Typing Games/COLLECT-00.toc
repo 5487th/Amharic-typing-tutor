@@ -27,6 +27,22 @@
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\PIL\\_webp.cp313-win_amd64.pyd',
    'EXTENSION'),
+  ('SDL2.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\SDL2.dll',
+   'BINARY'),
+  ('SDL2_image.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\SDL2_image.dll',
+   'BINARY'),
+  ('SDL2_mixer.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\SDL2_mixer.dll',
+   'BINARY'),
+  ('SDL2_ttf.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\SDL2_ttf.dll',
+   'BINARY'),
   ('VCRUNTIME140.dll',
    'C:\\Users\\adam '
    'Asteway\\AppData\\Local\\Programs\\Python\\Python313\\VCRUNTIME140.dll',
@@ -3811,6 +3827,10 @@
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\argon2_cffi-25.1.0.dist-info\\licenses\\LICENSE',
    'DATA'),
+  ('assets\\amharic_word_bank.json',
+   'D:\\misc\\python projects\\Amharic typing '
+   'tutor\\assets\\amharic_word_bank.json',
+   'DATA'),
   ('assets\\images\\Default profile.png',
    'D:\\misc\\python projects\\Amharic typing tutor\\assets\\images\\Default '
    'profile.png',
@@ -3819,9 +3839,17 @@
    'D:\\misc\\python projects\\Amharic typing tutor\\assets\\images\\amharic '
    'typing games app icon.ico',
    'DATA'),
+  ('assets\\images\\amharic typing test icon.png',
+   'D:\\misc\\python projects\\Amharic typing tutor\\assets\\images\\amharic '
+   'typing test icon.png',
+   'DATA'),
   ('assets\\images\\amharic typing tutor app icon.png',
    'D:\\misc\\python projects\\Amharic typing tutor\\assets\\images\\amharic '
    'typing tutor app icon.png',
+   'DATA'),
+  ('assets\\images\\amharic_rain_icon.png',
+   'D:\\misc\\python projects\\Amharic typing '
+   'tutor\\assets\\images\\amharic_rain_icon.png',
    'DATA'),
   ('assets\\images\\icons\\back_icon_black.png',
    'D:\\misc\\python projects\\Amharic typing '
@@ -3862,6 +3890,14 @@
   ('assets\\images\\icons\\logout_icon_white.png',
    'D:\\misc\\python projects\\Amharic typing '
    'tutor\\assets\\images\\icons\\logout_icon_white.png',
+   'DATA'),
+  ('assets\\images\\icons\\play_icon_black.png',
+   'D:\\misc\\python projects\\Amharic typing '
+   'tutor\\assets\\images\\icons\\play_icon_black.png',
+   'DATA'),
+  ('assets\\images\\icons\\play_icon_white.png',
+   'D:\\misc\\python projects\\Amharic typing '
+   'tutor\\assets\\images\\icons\\play_icon_white.png',
    'DATA'),
   ('assets\\images\\icons\\reset_icon_black.png',
    'D:\\misc\\python projects\\Amharic typing '
@@ -3938,6 +3974,13 @@
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\customtkinter\\assets\\themes\\green.json',
    'DATA'),
+  ('data\\users.db',
+   'D:\\misc\\python projects\\Amharic typing tutor\\data\\users.db',
+   'DATA'),
+  ('freetype.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\freetype.dll',
+   'BINARY'),
   ('libcrypto-3.dll',
    'C:\\Users\\adam '
    'Asteway\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\libcrypto-3.dll',
@@ -3946,9 +3989,41 @@
    'C:\\Users\\adam '
    'Asteway\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\libffi-8.dll',
    'BINARY'),
+  ('libjpeg-9.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\libjpeg-9.dll',
+   'BINARY'),
+  ('libmodplug-1.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\libmodplug-1.dll',
+   'BINARY'),
+  ('libogg-0.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\libogg-0.dll',
+   'BINARY'),
+  ('libopus-0.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\libopus-0.dll',
+   'BINARY'),
+  ('libopusfile-0.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\libopusfile-0.dll',
+   'BINARY'),
+  ('libpng16-16.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\libpng16-16.dll',
+   'BINARY'),
   ('libssl-3.dll',
    'C:\\Users\\adam '
    'Asteway\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\libssl-3.dll',
+   'BINARY'),
+  ('libtiff-5.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\libtiff-5.dll',
+   'BINARY'),
+  ('libwebp-7.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\libwebp-7.dll',
    'BINARY'),
   ('numpy-2.4.6.dist-info\\DELVEWHEEL',
    'd:\\misc\\python projects\\Amharic typing '
@@ -4106,10 +4181,170 @@
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\numpy\\random\\mtrand.cp313-win_amd64.pyd',
    'EXTENSION'),
+  ('portmidi.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\portmidi.dll',
+   'BINARY'),
   ('pyexpat.pyd',
    'C:\\Users\\adam '
    'Asteway\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\pyexpat.pyd',
    'EXTENSION'),
+  ('pygame\\SDL2.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\SDL2.dll',
+   'BINARY'),
+  ('pygame\\SDL2_image.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\SDL2_image.dll',
+   'BINARY'),
+  ('pygame\\SDL2_mixer.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\SDL2_mixer.dll',
+   'BINARY'),
+  ('pygame\\SDL2_ttf.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\SDL2_ttf.dll',
+   'BINARY'),
+  ('pygame\\_freetype.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\_freetype.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\base.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\base.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\bufferproxy.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\bufferproxy.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\color.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\color.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\constants.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\constants.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\display.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\display.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\draw.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\draw.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\event.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\event.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\font.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\font.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\freesansbold.ttf',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\freesansbold.ttf',
+   'DATA'),
+  ('pygame\\freetype.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\freetype.dll',
+   'BINARY'),
+  ('pygame\\image.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\image.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\imageext.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\imageext.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\joystick.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\joystick.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\key.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\key.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\libjpeg-9.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\libjpeg-9.dll',
+   'BINARY'),
+  ('pygame\\libogg-0.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\libogg-0.dll',
+   'BINARY'),
+  ('pygame\\libopus-0.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\libopus-0.dll',
+   'BINARY'),
+  ('pygame\\libpng16-16.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\libpng16-16.dll',
+   'BINARY'),
+  ('pygame\\mask.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\mask.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\math.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\math.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\mixer.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\mixer.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\mixer_music.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\mixer_music.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\mouse.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\mouse.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\pixelarray.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\pixelarray.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\pixelcopy.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\pixelcopy.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\pygame_icon.bmp',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\pygame_icon.bmp',
+   'DATA'),
+  ('pygame\\rect.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\rect.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\rwobject.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\rwobject.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\scrap.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\scrap.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\surface.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\surface.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\surflock.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\surflock.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\time.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\time.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\transform.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\transform.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('pygame\\zlib1.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\zlib1.dll',
+   'BINARY'),
   ('pymupdf\\_extra.pyd',
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\pymupdf\\_extra.pyd',
@@ -4170,7 +4405,11 @@
    'C:\\Users\\adam '
    'Asteway\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\unicodedata.pyd',
    'EXTENSION'),
-  ('zlib1.dll',
+  ('winsound.pyd',
    'C:\\Users\\adam '
-   'Asteway\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\zlib1.dll',
+   'Asteway\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\winsound.pyd',
+   'EXTENSION'),
+  ('zlib1.dll',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\zlib1.dll',
    'BINARY')],)

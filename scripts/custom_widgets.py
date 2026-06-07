@@ -674,3 +674,110 @@ class PDFViewer(CTkFrame):
 
     def _on_resize(self, event):
         self.after(50, self._update_image)
+
+
+class ActivityCard(CTkFrame):
+    def __init__(
+        self,
+        master,
+        thumbnail_path,
+        tittle,
+        discription="",
+        thumbnail_size=(180, 180),
+        **kwargs,
+    ):
+        super().__init__(master, **kwargs)
+
+        if not tittle:
+            warnings.warn(
+                "attempted to create activity card with None tittle, activity card not created"
+            )
+            return
+
+        self.thumbnail_path = thumbnail_path
+        self.tittle = tittle
+        self.discription = discription
+        self.thumbnail_size = thumbnail_size
+
+        self.on_start_button_pressed = signal(f"on start button pressed {self}")
+
+        # Tuple = (light mode color, dark mode color)
+        self.configure(fg_color=("gray85", "gray20"), height=200)
+        self.pack_configure(fill="both", pady=5)
+        self.pack_propagate(False)
+
+        # --- Thumbnail (left) ---
+        if thumbnail_path and pathlib.Path(thumbnail_path).exists():
+            image = Image.open(thumbnail_path)
+            ctk_image = CTkImage(
+                light_image=image, dark_image=image, size=thumbnail_size
+            )
+            self.thumbnail = CTkLabel(self, image=ctk_image, text="")
+            self.thumbnail.pack(side="left")
+
+        # --- Play button (right) ---
+        right_frame = CTkFrame(self, fg_color="transparent", width=130)
+        right_frame.pack(side="right", padx=15, pady=10)
+        right_frame.pack_propagate(False)
+
+        play_button_path_black = (
+            pathlib.Path(__file__).parent.parent
+            / "assets"
+            / "images"
+            / "icons"
+            / "play_icon_black.png"
+        )
+        play_button_path_white = (
+            pathlib.Path(__file__).parent.parent
+            / "assets"
+            / "images"
+            / "icons"
+            / "play_icon_white.png"
+        )
+
+        # Icon slightly smaller than button so rounded corners are visible
+        play_icon_ctk_image = CTkImage(
+            light_image=Image.open(play_button_path_black),
+            dark_image=Image.open(play_button_path_white),
+            size=(60, 60),
+        )
+
+        self.start_button = CTkButton(
+            right_frame,
+            text="",
+            image=play_icon_ctk_image,
+            corner_radius=24,
+            height=105,
+            width=105,
+            # Give it a visible background so rounding shows
+            fg_color=("gray70", "gray30"),
+            hover_color=("gray60", "gray40"),
+            command=self.on_start_icon_pressed,
+        )
+        self.start_button.place(relx=0.5, rely=0.5, anchor="center")
+
+        # --- Title + description (middle) ---
+        self.middle_frame = CTkFrame(self, fg_color="transparent")
+        self.middle_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10)
+
+        self.tittle_label = CTkLabel(
+            self.middle_frame,
+            text=self.tittle,
+            font=("Roboto", 40, "bold"),
+            anchor="w",
+            justify="left",
+        )
+        self.tittle_label.pack(anchor="nw", padx=10, pady=(10, 0), fill="x")
+
+        self.discription_label = CTkLabel(
+            self.middle_frame,
+            text=self.discription,
+            font=("Roboto", 20),
+            anchor="w",
+            justify="left",
+            wraplength=400,
+        )
+        self.discription_label.pack(anchor="nw", padx=10, pady=(4, 10), fill="x")
+
+    def on_start_icon_pressed(self):
+        self.on_start_button_pressed.send(self)

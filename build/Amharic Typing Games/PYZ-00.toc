@@ -1868,6 +1868,58 @@
    'C:\\Users\\adam '
    'Asteway\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pydoc_data\\topics.py',
    'PYMODULE'),
+  ('pygame',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\__init__.py',
+   'PYMODULE'),
+  ('pygame.colordict',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\colordict.py',
+   'PYMODULE'),
+  ('pygame.cursors',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\cursors.py',
+   'PYMODULE'),
+  ('pygame.fastevent',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\fastevent.py',
+   'PYMODULE'),
+  ('pygame.ftfont',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\ftfont.py',
+   'PYMODULE'),
+  ('pygame.macosx',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\macosx.py',
+   'PYMODULE'),
+  ('pygame.pkgdata',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\pkgdata.py',
+   'PYMODULE'),
+  ('pygame.sndarray',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\sndarray.py',
+   'PYMODULE'),
+  ('pygame.sprite',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\sprite.py',
+   'PYMODULE'),
+  ('pygame.surfarray',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\surfarray.py',
+   'PYMODULE'),
+  ('pygame.sysfont',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\sysfont.py',
+   'PYMODULE'),
+  ('pygame.threads',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\threads\\__init__.py',
+   'PYMODULE'),
+  ('pygame.version',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\pygame\\version.py',
+   'PYMODULE'),
   ('pymupdf',
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\pymupdf\\__init__.py',

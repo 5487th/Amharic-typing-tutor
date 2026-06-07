@@ -19,8 +19,16 @@ login_menu = LoginMenu(root, language_manager, user_manager)
 signup_menu = SignUpMenu(root, language_manager, user_manager)
 main_menu = MainMenu(root, user_manager, language_manager)
 manual_menu = ManualMenu(root, language_manager)
-login_menu.open_menu()
+typing_test_menu = TypingTestMenu(root, language_manager)
 
+# games
+amharic_rain_game_menu = AmharicRainMenu()
+amharic_rain_game_menu.load_word_bank(
+    pathlib.Path(__file__).parent / "assets" / "amharic_word_bank.json"
+)
+
+# entry menu
+login_menu.open_menu()
 
 # menu connectors
 login_to_signup_connector = LoginToSignupConnector(login_menu, signup_menu)
@@ -28,6 +36,10 @@ login_to_main_menu_connector = LoginToMainMenuConnector(
     root, login_menu, main_menu, language_manager, user_manager
 )
 main_menu_to_manual_menu = MainMenuToManualMenuConnector(main_menu, manual_menu)
+main_menu_to_typing_test = MainMenuToTypingTestMenu(main_menu, typing_test_menu)
+main_menu_to_amharic_rain_menu = MainMenuToAmharicRainGameMenu(
+    root, main_menu, amharic_rain_game_menu
+)
 
 root.geometry("1000x600")
 root.minsize(1000, 600)

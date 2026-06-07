@@ -149,3 +149,72 @@ class MainMenuToManualMenuConnector:
     def on_back_button_pressed(self, sender):
         self.manual_menu.close_menu()
         self.main_menu.open_menu()
+
+
+class MainMenuToTypingTestMenu:
+    def __init__(self, main_menu: MainMenu, typing_test_menu: TypingTestMenu):
+        if not main_menu:
+            warnings.warn(
+                "attempted to create main menu to manual menu connection with none main menu, menu connector not created"
+            )
+            return
+        if not typing_test_menu:
+            warnings.warn(
+                "attempted to create main menu to manual menu connection with none typing test menu, menu connector not created"
+            )
+            return
+        self.main_menu: MainMenu = main_menu
+        self.typing_test_menu: TypingTestMenu = typing_test_menu
+
+        self.main_menu.on_amharic_typing_test_activity_card_icon_pressed.connect(
+            self.on_typing_test_button_pressed
+        )
+        self.typing_test_menu.on_back_button_pressed.connect(
+            self.on_back_button_pressed
+        )
+
+    def on_typing_test_button_pressed(self, sender):
+        self.main_menu.close_menu()
+        self.typing_test_menu.open_menu()
+
+    def on_back_button_pressed(self, sender):
+        self.typing_test_menu.close_menu()
+        self.main_menu.open_menu()
+
+
+class MainMenuToAmharicRainGameMenu:
+    def __init__(self, root, main_menu: MainMenu, amharic_rain: AmharicRainMenu):
+        if not main_menu:
+            warnings.warn(
+                "attempted to create main menu to manual menu connection with none main menu, menu connector not created"
+            )
+            return
+        if not root:
+            warnings.warn(
+                "attempted to create main menu to manual menu connection with none root, menu connector not created"
+            )
+            return
+        if not amharic_rain:
+            warnings.warn(
+                "attempted to create main menu to manual menu connection with none typing test menu, menu connector not created"
+            )
+            return
+
+        self.main_menu: MainMenu = main_menu
+        self.amharic_rain_menu: AmharicRainMenu = amharic_rain
+        self.root = root
+
+        self.main_menu.on_amharic_rain_activity_card_icon_pressed.connect(
+            self.on_amharic_rain_button_pressed
+        )
+        self.amharic_rain_menu.on_back_button_pressed.connect(
+            self.on_back_button_pressed
+        )
+
+    def on_amharic_rain_button_pressed(self, sender):
+        self.main_menu.close_menu()
+        self.amharic_rain_menu.open_menu(self.root)
+
+    def on_back_button_pressed(self, sender):
+        self.amharic_rain_menu.close_menu()
+        self.main_menu.open_menu()

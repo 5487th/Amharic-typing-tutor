@@ -34,7 +34,7 @@
     "Create":{
         "en":"Create",
         "am":"ፍጠረው"
-    },  
+    },
     "Cancel":{
         "en":"Cancel",
         "am":"ተወዉ"
@@ -82,6 +82,69 @@
     "Profile picture":{
         "en":"Profile picture",
         "am":"የ መታወቂያ ፎቶ"
+    },
+    "typing_test_title":{
+        "en":"Take a Typing Test",
+        "am":"የፅሁፍ ፈተና ውሰዱ"
+    },
+    "typing_time_label":{
+        "en":"Time:",
+        "am":"ጊዜ:"
+    },
+    "typing_placeholder":{
+        "en":"Start typing here…",
+        "am":"እዚህ ምጻፍ ይጀምሩ…"
+    },
+    "typing_wpm_live":{
+        "en":"WPM: —",
+        "am":"ቃላት/ደቂቃ: —"
+    },
+    "typing_acc_live":{
+        "en":"Accuracy: —%",
+        "am":"ትክክለኛነት: —%"
+    },
+    "typing_wpm_live_value":{
+        "en":"WPM: {wpm}",
+        "am":"ቃላት/ደቂቃ: {wpm}"
+    },
+    "typing_acc_live_value":{
+        "en":"Accuracy: {acc}%",
+        "am":"ትክክለኛነት: {acc}%"
+    },
+    "typing_restart":{
+        "en":"↺  Restart",
+        "am":"↺  እንደገና ጀምር"
+    },
+    "typing_test_complete":{
+        "en":"Test Complete!",
+        "am":"ፈተናው ተጠናቋል!"
+    },
+    "typing_wpm":{
+        "en":"WPM",
+        "am":"ቃላት/ደቂቃ"
+    },
+    "typing_accuracy":{
+        "en":"Accuracy",
+        "am":"ትክክለኛነት"
+    },
+    "typing_try_again":{
+        "en":"↺  Try Again",
+        "am":"↺  እንደገና ሞክር"
+    },
+    "Amharic Typing Test":{
+        "en":"Amharic Typing Test",
+        "am":"የአማረኛ ጽሁፍ ፈተና"
+    },
+    "A simple typing test to test your amharic typing skills":{
+        "en":"A typing test to test your amharic typing skills, it will tell you your typing speed and accuracy",
+        "am":"የአማረኛ ጽሁፍ ፈተና ሲሆን፣ የጽሁፍ ፈጥነት እና ተክክለኛነት ይናገራል"
+    },
+    "Amharic Rain":{
+      "en":"Amharic Rain",
+      "am": "አማረኛ ዝናብ"  
+    },
+    "Letters and words are falling out of the sky! quickly type them out and save them before they fall of your screen.":{
+        "en":"Letters and words are falling out of the sky! quickly type them out and save them before they fall of your screen.",
+        "am":"ቃላቶቹ እና ፊደላቶቹ እየወደቁ ነው! ቶሎ በለው ሳይጠፉ ይጻፉ እና ያተርፏቸው"
     }
-
 }

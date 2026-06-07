@@ -42,17 +42,17 @@
    'D:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
    'PYSOURCE'),
-  ('pyi_rth__tkinter',
+  ('pyi_rth_pkgutil',
    'D:\\misc\\python projects\\Amharic typing '
-   'tutor\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth__tkinter.py',
+   'tutor\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
    'PYSOURCE'),
   ('pyi_rth_multiprocessing',
    'D:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py',
    'PYSOURCE'),
-  ('pyi_rth_pkgutil',
+  ('pyi_rth__tkinter',
    'D:\\misc\\python projects\\Amharic typing '
-   'tutor\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
+   'tutor\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth__tkinter.py',
    'PYSOURCE'),
   ('main',
    'D:\\misc\\python projects\\Amharic typing tutor\\main.py',
