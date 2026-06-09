@@ -1,3 +1,6 @@
+import sys, os
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import customtkinter as ctk
 from blinker import signal
 import pathlib
@@ -22,10 +25,14 @@ manual_menu = ManualMenu(root, language_manager)
 typing_test_menu = TypingTestMenu(root, language_manager)
 
 # games
+amharic_word_bank = pathlib.Path(__file__).parent / "assets" / "amharic_word_bank.json"
+amharic_name_bank = pathlib.Path(__file__).parent / "assets" / "amharic_name_bank.json"
+
 amharic_rain_game_menu = AmharicRainMenu()
-amharic_rain_game_menu.load_word_bank(
-    pathlib.Path(__file__).parent / "assets" / "amharic_word_bank.json"
-)
+amharic_rain_game_menu.load_word_bank(amharic_word_bank)
+
+amharic_typing_race = AmharicTypingRaceMenu(root, language_manager.current_lang)
+amharic_typing_race.load_word_bank(str(amharic_word_bank))
 
 # entry menu
 login_menu.open_menu()
@@ -39,6 +46,9 @@ main_menu_to_manual_menu = MainMenuToManualMenuConnector(main_menu, manual_menu)
 main_menu_to_typing_test = MainMenuToTypingTestMenu(main_menu, typing_test_menu)
 main_menu_to_amharic_rain_menu = MainMenuToAmharicRainGameMenu(
     root, main_menu, amharic_rain_game_menu
+)
+main_menu_to_amharic_race_menu = MainMenuToAmharicRaceGameMenu(
+    root, main_menu, amharic_typing_race
 )
 
 root.geometry("1000x600")

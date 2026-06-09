@@ -218,3 +218,43 @@ class MainMenuToAmharicRainGameMenu:
     def on_back_button_pressed(self, sender):
         self.amharic_rain_menu.close_menu()
         self.main_menu.open_menu()
+
+
+class MainMenuToAmharicRaceGameMenu:
+    def __init__(
+        self, root, main_menu: MainMenu, amharic_typing_race: AmharicTypingRaceMenu
+    ):
+        if not main_menu:
+            warnings.warn(
+                "attempted to create main menu to typing race menu connection with none main menu, menu connector not created"
+            )
+            return
+        if not root:
+            warnings.warn(
+                "attempted to create main menu to typing race menu connection with none root, menu connector not created"
+            )
+            return
+        if not amharic_typing_race:
+            warnings.warn(
+                "attempted to create main menu to typing race menu connection with none typing race menu, menu connector not created"
+            )
+            return
+
+        self.main_menu: MainMenu = main_menu
+        self.amharic_race_menu: AmharicTypingRaceMenu = amharic_typing_race
+        self.root = root
+
+        self.main_menu.on_amharic_race_activity_card_icon_pressed.connect(
+            self.on_amharic_race_button_pressed
+        )
+        self.amharic_race_menu.on_back_button_pressed.connect(
+            self.on_back_button_pressed
+        )
+
+    def on_amharic_race_button_pressed(self, sender):
+        self.main_menu.close_menu()
+        self.amharic_race_menu.open_menu(self.root)
+
+    def on_back_button_pressed(self, sender):
+        self.amharic_race_menu.close_menu()
+        self.main_menu.open_menu()

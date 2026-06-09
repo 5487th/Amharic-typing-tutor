@@ -1,4 +1,8 @@
 from __future__ import annotations
+import sys, os
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from customtkinter import *
 import warnings
 from blinker import signal
@@ -8,9 +12,8 @@ import fitz
 import tkinter as tk
 from tkinter import Canvas, Frame
 
-from scripts.user_manager import User
-from scripts.user_manager import UserManager
-from scripts.language_manager import LanguageManager
+from user_manager import UserManager, User
+from language_manager import LanguageManager
 
 
 class UserProfileCard(CTkFrame):
