@@ -458,6 +458,36 @@ class ImageButton(CTkLabel):
             )
         )
 
+    def set_image(self, light_image_path, dark_image_path):
+        """Update the button with new light/dark images."""
+        # Validate paths
+        if (
+            not pathlib.Path(light_image_path).exists()
+            or not pathlib.Path(dark_image_path).exists()
+        ):
+            warnings.warn(
+                "Invalid image path(s) provided to set_image(), update skipped"
+            )
+            return
+
+        # Update stored paths
+        self.light_image_path = light_image_path
+        self.dark_image_path = dark_image_path
+
+        # Reload image objects
+        self.light_image_object = Image.open(self.light_image_path)
+        self.dark_image_object = Image.open(self.dark_image_path)
+
+        # Recreate CTkImage with current size
+        self.ctk_image = CTkImage(
+            light_image=self.light_image_object,
+            dark_image=self.dark_image_object,
+            size=(self.sizex, self.sizey),
+        )
+
+        # Apply to widget
+        self.configure(image=self.ctk_image, text="")
+
 
 class GamesIcon(CTkFrame):
     def __init__(self, master, activity_image_path, activity_name, menu, **kwargs):
