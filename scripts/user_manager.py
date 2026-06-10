@@ -205,7 +205,7 @@ class UserManager:
                 "called change user functoin with a 'none' username, password not changed"
             )
             return
-        if not new_password:
+        if new_password is None:
             warnings.warn(
                 "called change user password with a 'None' new password, password not changed"
             )

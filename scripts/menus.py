@@ -472,6 +472,7 @@ class SignUpMenu(Menu):
             save_dir.mkdir(parents=True, exist_ok=True)
             image_object.save(save_path, format="PNG")
             profile_picture_path = save_path
+            print("so dis did happen")
 
         if is_valid_username and (
             is_password_atleast_four_characters_long
