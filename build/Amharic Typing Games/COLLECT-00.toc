@@ -3827,6 +3827,10 @@
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\argon2_cffi-25.1.0.dist-info\\licenses\\LICENSE',
    'DATA'),
+  ('assets\\amharic_name_bank.json',
+   'D:\\misc\\python projects\\Amharic typing '
+   'tutor\\assets\\amharic_name_bank.json',
+   'DATA'),
   ('assets\\amharic_word_bank.json',
    'D:\\misc\\python projects\\Amharic typing '
    'tutor\\assets\\amharic_word_bank.json',
@@ -3839,17 +3843,21 @@
    'D:\\misc\\python projects\\Amharic typing tutor\\assets\\images\\amharic '
    'typing games app icon.ico',
    'DATA'),
+  ('assets\\images\\amharic typing games app icon.png',
+   'D:\\misc\\python projects\\Amharic typing tutor\\assets\\images\\amharic '
+   'typing games app icon.png',
+   'DATA'),
   ('assets\\images\\amharic typing test icon.png',
    'D:\\misc\\python projects\\Amharic typing tutor\\assets\\images\\amharic '
    'typing test icon.png',
    'DATA'),
-  ('assets\\images\\amharic typing tutor app icon.png',
-   'D:\\misc\\python projects\\Amharic typing tutor\\assets\\images\\amharic '
-   'typing tutor app icon.png',
-   'DATA'),
   ('assets\\images\\amharic_rain_icon.png',
    'D:\\misc\\python projects\\Amharic typing '
    'tutor\\assets\\images\\amharic_rain_icon.png',
+   'DATA'),
+  ('assets\\images\\amharic_typing_racer_icon.png',
+   'D:\\misc\\python projects\\Amharic typing '
+   'tutor\\assets\\images\\amharic_typing_racer_icon.png',
    'DATA'),
   ('assets\\images\\icons\\back_icon_black.png',
    'D:\\misc\\python projects\\Amharic typing '

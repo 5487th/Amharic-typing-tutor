@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from scripts.menus import *
+from scripts.games import *
 import warnings
 
 
@@ -149,6 +150,63 @@ class MainMenuToManualMenuConnector:
     def on_back_button_pressed(self, sender):
         self.manual_menu.close_menu()
         self.main_menu.open_menu()
+
+
+class MainMenuToUserSettingsMenu:
+    def __init__(
+        self,
+        root,
+        main_menu: MainMenu,
+        user_settings_menu: UserSettingsMenu,
+        login_menu: LoginMenu,
+        signup_menu: SignUpMenu,
+        language_manager: LanguageManager,
+        user_manager: UserManager,
+    ):
+        if not main_menu:
+            warnings.warn(
+                "attempted to create main menu to user settings menu connection with none main menu, manual connector not created"
+            )
+            return
+        if not user_settings_menu:
+            warnings.warn(
+                "attempted to create main menu to user settings menu connection with none main menu, manual connector not created"
+            )
+            return
+        self.root = root
+        self.main_menu: MainMenu = main_menu
+        self.user_settings_menu: UserSettingsMenu = user_settings_menu
+        self.login_menu: LoginMenu = login_menu
+        self.signup_menu: SignUpMenu = signup_menu
+        self.language_manager = language_manager
+        self.user_manager = user_manager
+
+        self.main_menu.on_profile_button_pressed.connect(self.on_user_profile_pressed)
+        self.user_settings_menu.on_back_button_pressed.connect(
+            self.on_back_button_pressed
+        )
+        self.user_settings_menu.on_account_deleted.connect(self.on_account_deleted)
+
+    def on_user_profile_pressed(self, sender):
+        self.main_menu.close_menu()
+        self.user_settings_menu.open_menu()
+
+    def on_back_button_pressed(self, sender):
+        self.user_settings_menu.close_menu()
+        self.main_menu.open_menu()
+
+    def on_account_deleted(self, sender, user, **kwargs):
+        # Show the logout transition screen then go back to the login menu
+        self.transition_screen = logging_in_out_transition_screen(
+            self.language_manager, self.user_manager, user, self.root, mode="out"
+        )
+        self.transition_screen.place(relx=0.5, rely=0.5, anchor="center")
+        self.root.update_idletasks()
+        self.root.after(2700, self._end_transition_to_login)
+
+    def _end_transition_to_login(self):
+        self.transition_screen.place_forget()
+        self.login_menu.open_menu()
 
 
 class MainMenuToTypingTestMenu:

@@ -458,7 +458,7 @@ class ImageButton(CTkLabel):
             )
         )
 
-    def set_image(self, light_image_path, dark_image_path):
+    def set_image_by_path(self, light_image_path, dark_image_path):
         """Update the button with new light/dark images."""
         # Validate paths
         if (
@@ -477,6 +477,31 @@ class ImageButton(CTkLabel):
         # Reload image objects
         self.light_image_object = Image.open(self.light_image_path)
         self.dark_image_object = Image.open(self.dark_image_path)
+
+        # Recreate CTkImage with current size
+        self.ctk_image = CTkImage(
+            light_image=self.light_image_object,
+            dark_image=self.dark_image_object,
+            size=(self.sizex, self.sizey),
+        )
+
+        # Apply to widget
+        self.configure(image=self.ctk_image, text="")
+
+    def set_image(self, light_image, dark_image):
+        """
+        Update the button with new light/dark PIL.Image objects.
+        Accepts Image objects (from Image.open()) directly.
+        """
+        if light_image is None or dark_image is None:
+            warnings.warn(
+                "Invalid image objects provided to set_image(), update skipped"
+            )
+            return
+
+        # Store references
+        self.light_image_object = light_image
+        self.dark_image_object = dark_image
 
         # Recreate CTkImage with current size
         self.ctk_image = CTkImage(

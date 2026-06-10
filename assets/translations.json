@@ -83,6 +83,66 @@
         "en":"Profile picture",
         "am":"የ መታወቂያ ፎቶ"
     },
+    "settings_choose_photo":{
+        "en":"Choose photo…",
+        "am":"ፎቶ ይምረጡ…"
+    },
+    "settings_reset_photo":{
+        "en":"Reset to default",
+        "am":"ነባሪ ፎቶ መልስ"
+    },
+    "settings_pw_description":{
+        "en":"Update the password used to log in to this account.",
+        "am":"ወደ ሒሳብዎ ለመግባት የሚጠቀሙበትን ቁልፍ ያዘምኑ።"
+    },
+    "settings_change_password_btn":{
+        "en":"Change password…",
+        "am":"ቁልፍ ይቀይሩ…"
+    },
+    "settings_danger_zone":{
+        "en":"Danger zone",
+        "am":"አደገኛ ቦታ"
+    },
+    "settings_danger_description":{
+        "en":"Deleting your account is permanent and cannot be undone.",
+        "am":"መታወቂያዎን መሰረዝ ቋሚ ሲሆን ወደኋላ ሊመለስ አይችልም።"
+    },
+    "settings_delete_account_btn":{
+        "en":"Delete account",
+        "am":"መታወቂያ ሰርዝ"
+    },
+    "settings_change_password_title":{
+        "en":"Change Password",
+        "am":"ቁልፍ ይቀይሩ"
+    },
+    "settings_current_password":{
+        "en":"Current password",
+        "am":"አሁን ያለ ቁልፍ"
+    },
+    "settings_new_password":{
+        "en":"New password",
+        "am":"አዲስ ቁልፍ"
+    },
+    "settings_confirm_password":{
+        "en":"Confirm new password",
+        "am":"አዲስ ቁልፍ ያረጋግጡ"
+    },
+    "settings_save":{
+        "en":"Save",
+        "am":"አስቀምጥ"
+    },
+    "settings_delete_account_title":{
+        "en":"⚠  Delete Account",
+        "am":"⚠  መታወቂያ ሰርዝ"
+    },
+    "settings_delete_confirm_desc":{
+        "en":"This cannot be undone.",
+        "am":"ይህ ወደኋላ ሊመለስ አይችልም።"
+    },
+    "settings_delete_btn":{
+        "en":"Delete",
+        "am":"ሰርዝ"
+    },
     "typing_test_title":{
         "en":"Take a Typing Test",
         "am":"የፅሁፍ ፈተና ውሰዱ"
@@ -154,6 +214,5 @@
     "you are in a typing race, with 3 other cars. type out the provided phargraph before the other cars and grab your crown!":{
         "en":"you are in a typing race, with 3 other cars. type out the provided phargraph before the other cars and grab your crown!",
         "am":"የጽሁፍ ወድድር ውስት ኖት፣ ቶሎ በልው የተገለጸውን ጽሁፍ ጽፈው ዋንጫዎን የብሉ."
-    }
-        
+    }   
 }

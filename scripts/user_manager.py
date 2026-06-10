@@ -135,6 +135,15 @@ class UserManager:
             )
             self.usermanager_database.commit()
 
+            if (
+                deleted_user
+                and deleted_user.profile_picture_path
+                and str(deleted_user.profile_picture_path)
+                != str(self.default_profile_picture_path)
+                and pathlib.Path(deleted_user.profile_picture_path).exists()
+            ):
+                pathlib.Path(deleted_user.profile_picture_path).unlink()
+
             if deleted_user:
                 self.on_user_deleted.send(self, user=deleted_user)
             else:
@@ -222,7 +231,7 @@ class UserManager:
         )
         self.usermanager_database.commit()
         if self.current_user and self.current_user.username == username:
-            self.current_user.theme = hashed_password
+            self.current_user.password = hashed_password
 
         self.on_user_changed_password.send(
             self,
@@ -377,3 +386,17 @@ class UserManager:
             return True
         except VerifyMismatchError:
             return False
+
+    def change_user_profile_picture(self, username, new_picture_path):
+        if not username:
+            warnings.warn(
+                "called change_user_profile_picture with 'None' username, picture not changed"
+            )
+            return
+        self.usermanager_database_cursor.execute(
+            f"UPDATE {self.users_table_name} SET profile_path = ? WHERE username = ?",
+            (new_picture_path, username),
+        )
+        self.usermanager_database.commit()
+        if self.current_user and self.current_user.username == username:
+            self.current_user.profile_picture_path = new_picture_path

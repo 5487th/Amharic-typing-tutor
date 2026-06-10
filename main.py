@@ -9,6 +9,7 @@ import ctypes
 from scripts.user_manager import UserManager
 from scripts.language_manager import LanguageManager
 from scripts.menus import *
+from scripts.games import *
 from scripts.menu_connectors import *
 
 root = ctk.CTk()
@@ -23,6 +24,7 @@ signup_menu = SignUpMenu(root, language_manager, user_manager)
 main_menu = MainMenu(root, user_manager, language_manager)
 manual_menu = ManualMenu(root, language_manager)
 typing_test_menu = TypingTestMenu(root, language_manager)
+user_settings_menu = UserSettingsMenu(root, user_manager, language_manager)
 
 # games
 amharic_word_bank = pathlib.Path(__file__).parent / "assets" / "amharic_word_bank.json"
@@ -50,6 +52,16 @@ main_menu_to_amharic_rain_menu = MainMenuToAmharicRainGameMenu(
 main_menu_to_amharic_race_menu = MainMenuToAmharicRaceGameMenu(
     root, main_menu, amharic_typing_race
 )
+main_menu_to_settings_menu = MainMenuToUserSettingsMenu(
+    root,
+    main_menu,
+    user_settings_menu,
+    login_menu,
+    signup_menu,
+    language_manager,
+    user_manager,
+)
+
 
 root.geometry("1000x600")
 root.minsize(1000, 600)
