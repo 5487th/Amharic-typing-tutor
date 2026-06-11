@@ -3454,3 +3454,1110 @@ class AmharicTypingRaceMenu(Menu):
     def _hide_overlay(self):
         if self._overlay:
             self._overlay.place_forget()
+
+
+class AmharicDodgeMenu(Menu):
+    """Lane-dodge typing game — patched version."""
+
+    # ── Nested car object ────────────────────────────────────────────────────
+    class _Car:
+        __slots__ = ("lane", "x", "color", "resolved")
+
+        def __init__(self, lane: int, x: float, color: str):
+            self.lane = lane
+            self.x = x
+            self.color = color
+            self.resolved = False
+
+    # ── Visual / layout constants ─────────────────────────────────────────────
+    LANES = 6  # ← was 4
+    TRACK_H = 68  # ← was 80 (keeps 6 lanes fitting nicely)
+    CAR_W = 52
+    CAR_H = 28
+    PLAYER_X = 108
+    WORD_X = 200
+    SPAWN_X_PAD = 70
+
+    TRACK_BG = "#0d0d1a"
+    ROAD_COLOR = "#1c1c30"
+    STRIPE_COLOR = "#2e2e50"
+    GRASS_COLOR = "#0d1f0d"
+    PLAYER_COLOR = "#4fc3f7"
+    HIT_COLOR = "#f44336"
+
+    WORD_DEFAULT_CLR = "#ffd54f"
+    WORD_PLAYER_CLR = "#4fc3f7"
+    WORD_DANGER_CLR = "#ff5252"
+    WORD_HINT_CLR = "#b9f6ca"
+
+    # ── Difficulty bands ──────────────────────────────────────────────────────
+    DIFFICULTY_BANDS = {
+        "Easy": {
+            "speed": 110,
+            "spawn_base_ms": 2_800,
+            "spawn_min_ms": 950,
+            "spawn_ramp_ms": 100,
+        },
+        "Medium": {
+            "speed": 155,
+            "spawn_base_ms": 2_300,
+            "spawn_min_ms": 620,
+            "spawn_ramp_ms": 130,
+        },
+        "Hard": {
+            "speed": 215,
+            "spawn_base_ms": 1_600,
+            "spawn_min_ms": 380,
+            "spawn_ramp_ms": 170,
+        },
+    }
+
+    LIVES_MAX = 3
+    FRAME_MS = 33
+    SPEED_RAMP = 14
+    RAMP_EVERY = 6
+    HIT_BOX_RATIO = 0.78
+    HIT_FLASH_FRAMES = 9
+    DANGER_LOOKAHEAD = 280
+
+    LIGHT_COLORS_ON = ["#f44336", "#ff9800", "#4caf50"]
+    LIGHT_COLORS_OFF = ["#2a0a0a", "#2a1800", "#0a1a0a"]
+
+    NPC_COLOR_POOL = [
+        "#ef5350",
+        "#ff9800",
+        "#ab47bc",
+        "#26c6da",
+        "#66bb6a",
+        "#ffa726",
+        "#ec407a",
+        "#7e57c2",
+        "#26a69a",
+        "#d4e157",
+        "#ff7043",
+        "#42a5f5",
+        "#8d6e63",
+        "#78909c",
+        "#ffca28",
+    ]
+
+    # ── Difficulty-tiered Amharic word banks ──────────────────────────────────
+    # Easy   = short words (2-3 Ethiopic syllable blocks)
+    AMHARIC_WORDS_EASY = [
+        "ውሻ",
+        "ዳር",
+        "ቁልፍ",
+        "ምት",
+        "ድል",
+        "ጥረት",
+        "ሩጫ",
+        "ነፋስ",
+        "ቀስት",
+        "ወርቅ",
+        "ሰላም",
+        "ጉዞ",
+        "ድምፅ",
+        "ቀለም",
+        "ኮከብ",
+        "እሳት",
+        "ደረጃ",
+        "ፊደል",
+        "ሕልም",
+        "ዶፍ",
+        "ቀበሮ",
+        "ሰነፍ",
+        "ዘሎ",
+    ]
+
+    # Medium = 4-5 block words (original mix)
+    AMHARIC_WORDS_MEDIUM = [
+        "ፈጣን",
+        "ቡናማ",
+        "ያልፋል",
+        "ቀዝቃዛ",
+        "ጠዋት",
+        "ወንዝ",
+        "ፍጥነት",
+        "ልምምድ",
+        "ትኩረት",
+        "ትዕግስት",
+        "መስመር",
+        "ቀጥል",
+        "ጣቶች",
+        "አዕምሮ",
+        "ጡንቻ",
+        "ትውስታ",
+        "ሰሌዳ",
+        "ፉክክር",
+        "ሽንፈት",
+        "መኪና",
+        "መንገድ",
+        "ይሁን",
+        "ጠንካራ",
+        "ቀላል",
+        "ከባድ",
+        "ስኬት",
+        "ዝግጁ",
+        "ግፋ",
+        "ነጎድጓድ",
+        "ብልጭታ",
+        "አውሎ",
+        "ሕይወት",
+        "ድንቅ",
+    ]
+
+    # Hard  = longer / compound words (6+ blocks)
+    AMHARIC_WORDS_HARD = [
+        "መጨረሻ",
+        "ብርሃን",
+        "ሲሮጥ",
+        "ትኩረት",
+        "ፍጥነት",
+        "ልምምድ",
+        "ትዕግስት",
+        "ትውስታ",
+        "ነጎድጓድ",
+        "ብልጭታ",
+        "ስኬት",
+        "ፉክክር",
+        "ሽንፈት",
+        "ዝግጁ",
+        "አዕምሮ",
+        "ሰሌዳ",
+        "ያስወጋቸው",
+        "ጨዋታ",
+        "ተዘጋጅ",
+        "ፍጥነቱ",
+        "መስመሩ",
+        "ሩጫውን",
+        "ቀጥለህ",
+        "ጡንቻህ",
+        "ሰሌዳህ",
+    ]
+
+    # Back-compat: keep the flat list for any code that references it directly
+    AMHARIC_WORDS = AMHARIC_WORDS_MEDIUM
+
+    # ── Bilingual UI strings ──────────────────────────────────────────────────
+    UI_STRINGS = {
+        "english": {
+            "title": "AMHARIC DODGE",
+            "subtitle": "Type a lane word to switch lanes and dodge!",
+            "start_btn": "Start",
+            "play_again": "Play Again",
+            "lives": "Lives",
+            "score": "Dodged",
+            "wpm": "WPM",
+            "get_ready": "Get Ready…",
+            "go": "GO!",
+            "type_here": "Type a lane word to dodge!",
+            "waiting": "Waiting for game to start…",
+            "game_over": "GAME OVER",
+            "your_score": "Cars dodged",
+            "your_wpm": "Avg WPM",
+            "well_done": "Nice driving!",
+            "language": "Language",
+            "difficulty": "Difficulty",
+            "difficulties": {"Easy": "Easy", "Medium": "Medium", "Hard": "Hard"},
+        },
+        "amharic": {
+            "title": "አማርኛ ማስወጋት",
+            "subtitle": "ቃሉን ይጻፉ ለሌላ መስመር ለመሄድ!",
+            "start_btn": "ጀምር",
+            "play_again": "እንደገና",
+            "lives": "ህይወት",
+            "score": "ያስወጋቸው",
+            "wpm": "ቃ/ደ",
+            "get_ready": "ተዘጋጅ…",
+            "go": "ሂድ!",
+            "type_here": "ቃሉን ይጻፉ!",
+            "waiting": "ጨዋታ ለመጀመር…",
+            "game_over": "ጨዋታ አለቀ",
+            "your_score": "ያስወጋቸው መኪናዎች",
+            "your_wpm": "አማካኝ ፍጥነት",
+            "well_done": "ጥሩ ሩጫ!",
+            "language": "ቋንቋ",
+            "difficulty": "ክብደት",
+            "difficulties": {"Easy": "ቀላል", "Medium": "መካከለኛ", "Hard": "ከባድ"},
+        },
+    }
+
+    # ── Init ──────────────────────────────────────────────────────────────────
+    def __init__(self, root=None, appearance_mode="dark", color_theme="blue"):
+        ctk.set_appearance_mode(appearance_mode)
+        ctk.set_default_color_theme(color_theme)
+
+        self._root = root
+        self._container = None
+
+        self.on_back_button_pressed = signal(f"on_back_button_pressed{self}")
+
+        self._game_active = False
+        self._player_lane = self.LANES // 2
+        self._lives = self.LIVES_MAX
+        self._score = 0
+        self._words_typed = 0
+        self._start_time = None
+        self._cars = []
+        self._lane_words = []
+        self._current_speed = 0.0
+        self._hit_flash = 0
+        self._last_frame_time = None
+
+        self._anim_job = None
+        self._spawn_job = None
+
+        self._cd_active = False
+        self._cd_step = 0
+        self._cd_job = None
+        self._cd_items = []
+        self._cd_go_text = None
+
+        self._language = None
+        self._difficulty = None
+        self._input_var = None
+
+        # Custom word bank loaded from JSON; None = use built-in banks
+        self._custom_word_bank: dict | None = None
+
+    # ── Public API ────────────────────────────────────────────────────────────
+    def load_word_bank(self, path: str) -> None:
+        """Load a custom word bank from a JSON file.
+
+        The file must contain an object with at least one of the keys
+        ``"easy"``, ``"medium"``, or ``"hard"`` (case-insensitive), each
+        mapping to a list of strings::
+
+            {
+                "easy":   ["ውሻ", "ዳር", ...],
+                "medium": ["ፈጣን", "ትኩረት", ...],
+                "hard":   ["ያስወጋቸው", "ትዕግስት", ...]
+            }
+
+        Any tier that is absent or empty falls back to the built-in bank
+        for that difficulty.  Call this before ``open_menu()`` or between
+        games; it takes effect on the next ``_setup_game()`` call.
+
+        Raises ``FileNotFoundError`` if *path* does not exist and
+        ``ValueError`` if the JSON is structurally invalid.
+        """
+        with open(path, encoding="utf-8") as fh:
+            raw: dict = json.load(fh)
+
+        if not isinstance(raw, dict):
+            raise ValueError(
+                f"Word bank JSON must be an object, got {type(raw).__name__}"
+            )
+
+        # Normalise keys to title-case ("easy" → "Easy") and validate values
+        normalised: dict[str, list[str]] = {}
+        for key, words in raw.items():
+            tier = key.strip().capitalize()  # "easy"/"Easy"/"EASY" → "Easy"
+            if tier not in ("Easy", "Medium", "Hard"):
+                raise ValueError(
+                    f"Unknown difficulty tier '{key}'. Expected easy/medium/hard."
+                )
+            if not isinstance(words, list) or not all(
+                isinstance(w, str) for w in words
+            ):
+                raise ValueError(f"Tier '{key}' must be a list of strings.")
+            if words:  # silently skip empty tiers
+                normalised[tier] = words
+
+        if not normalised:
+            raise ValueError("Word bank file contained no usable tiers.")
+
+        self._custom_word_bank = normalised
+
+    def open_menu(self, root):
+        self._root = root
+        self._language = ctk.StringVar(value="english")
+        self._difficulty = ctk.StringVar(value="Medium")
+        self._build_ui(root)
+        self._setup_game()
+
+    def close_menu(self):
+        self._stop_game()
+        if self._container:
+            self._container.pack_forget()
+
+    # ── UI Construction ───────────────────────────────────────────────────────
+    def _build_ui(self, parent):
+        self._container = ctk.CTkFrame(parent, fg_color=self.TRACK_BG, corner_radius=0)
+        self._container.pack(fill="both", expand=True)
+        s = self._get_strings()
+
+        # Header
+        hdr = ctk.CTkFrame(
+            self._container, height=52, corner_radius=0, fg_color="#080812"
+        )
+        hdr.pack(fill="x")
+        hdr.pack_propagate(False)
+        ctk.CTkButton(
+            hdr,
+            text="◀ Back",
+            width=80,
+            height=32,
+            corner_radius=6,
+            font=ctk.CTkFont("Courier New", 11, weight="bold"),
+            fg_color="transparent",
+            hover_color="#1a1a30",
+            text_color="#6666aa",
+            border_width=1,
+            border_color="#2a2a4a",
+            command=self._on_back_click,
+        ).pack(side="left", padx=(12, 4), pady=10)
+        self._title_lbl = ctk.CTkLabel(
+            hdr,
+            text=s["title"],
+            font=ctk.CTkFont("Courier New", 20, weight="bold"),
+            text_color=self.PLAYER_COLOR,
+        )
+        self._title_lbl.pack(side="left", padx=8)
+        self._status_lbl = ctk.CTkLabel(
+            hdr,
+            text=s["subtitle"],
+            font=ctk.CTkFont("Courier New", 12),
+            text_color="#777",
+        )
+        self._status_lbl.pack(side="right", padx=20)
+
+        # Options bar
+        opts = ctk.CTkFrame(self._container, height=44, fg_color="#0d0d1f")
+        opts.pack(fill="x")
+        opts.pack_propagate(False)
+        self._lang_lbl = ctk.CTkLabel(
+            opts, text=s["language"], font=ctk.CTkFont(size=12), text_color="#888"
+        )
+        self._lang_lbl.pack(side="left", padx=(16, 4))
+        self._lang_menu = ctk.CTkOptionMenu(
+            opts,
+            values=["English", "አማርኛ"],
+            variable=ctk.StringVar(value="English"),
+            width=110,
+            height=30,
+            font=ctk.CTkFont(size=12),
+            fg_color="#1a1a2e",
+            button_color="#2a2a4e",
+            button_hover_color="#3a3a6e",
+            command=self._on_lang_change,
+        )
+        self._lang_menu.pack(side="left", padx=(0, 8))
+        ctk.CTkFrame(opts, width=1, fg_color="#333").pack(
+            side="left", fill="y", padx=4, pady=10
+        )
+        self._diff_lbl = ctk.CTkLabel(
+            opts, text=s["difficulty"], font=ctk.CTkFont(size=12), text_color="#888"
+        )
+        self._diff_lbl.pack(side="left", padx=(8, 4))
+        diff_vals = ["Easy", "Medium", "Hard"]
+        diff_display = [s["difficulties"][k] for k in diff_vals]
+        self._diff_menu = ctk.CTkOptionMenu(
+            opts,
+            values=diff_display,
+            variable=ctk.StringVar(value=diff_display[1]),
+            width=120,
+            height=30,
+            font=ctk.CTkFont(size=12),
+            fg_color="#1a1a2e",
+            button_color="#2a2a4e",
+            button_hover_color="#3a3a6e",
+            command=self._on_diff_change,
+        )
+        self._diff_menu.pack(side="left")
+
+        # Track canvas
+        cf = ctk.CTkFrame(self._container, fg_color=self.TRACK_BG, corner_radius=0)
+        cf.pack(fill="both", expand=True, padx=16, pady=(8, 0))
+        self._canvas = tk.Canvas(cf, bg=self.TRACK_BG, highlightthickness=0)
+        self._canvas.pack(fill="both", expand=True)
+        self._canvas.bind("<Configure>", lambda e: self._redraw())
+
+        # Typing entry
+        self._input_var = ctk.StringVar()
+        self._input_var.trace_add("write", self._on_input_change)
+        self._entry = ctk.CTkEntry(
+            self._container,
+            textvariable=self._input_var,
+            height=48,
+            corner_radius=10,
+            font=ctk.CTkFont("Courier New", 15),
+            placeholder_text=s["waiting"],
+            border_width=2,
+            border_color="#333",
+            state="disabled",
+        )
+        self._entry.pack(fill="x", padx=16, pady=(8, 0))
+
+        # HUD / bottom bar
+        bot = ctk.CTkFrame(self._container, fg_color="#080812", height=64)
+        bot.pack(fill="x", pady=(8, 0))
+        bot.pack_propagate(False)
+        stats = ctk.CTkFrame(bot, fg_color="transparent")
+        stats.pack(side="left", padx=16, pady=8)
+        self._lives_lbl = ctk.CTkLabel(
+            stats, text="", font=ctk.CTkFont("Courier New", 13), text_color="#f44336"
+        )
+        self._lives_lbl.pack(side="left")
+        self._score_lbl = ctk.CTkLabel(
+            stats,
+            text=f"{s['score']}: 0",
+            font=ctk.CTkFont("Courier New", 13),
+            text_color="#66bb6a",
+        )
+        self._score_lbl.pack(side="left", padx=16)
+        self._wpm_lbl = ctk.CTkLabel(
+            stats,
+            text=f"{s['wpm']}: —",
+            font=ctk.CTkFont("Courier New", 13),
+            text_color=self.PLAYER_COLOR,
+        )
+        self._wpm_lbl.pack(side="left", padx=16)
+        self._cd_canvas = tk.Canvas(
+            bot, width=120, height=48, bg="#080812", highlightthickness=0
+        )
+        self._cd_canvas.pack(side="left", expand=True)
+        self._build_countdown_lights()
+        self._start_btn = ctk.CTkButton(
+            bot,
+            text=s["start_btn"],
+            width=130,
+            height=38,
+            corner_radius=8,
+            font=ctk.CTkFont(size=13, weight="bold"),
+            fg_color="#1b5e20",
+            hover_color="#2e7d32",
+            command=self._open_countdown,
+        )
+        self._start_btn.pack(side="right", padx=16, pady=13)
+
+        # Result overlay
+        self._overlay = ctk.CTkFrame(
+            self._container,
+            corner_radius=14,
+            fg_color="#0e0e20",
+            border_width=2,
+            border_color=self.PLAYER_COLOR,
+        )
+        self._ov_title = ctk.CTkLabel(
+            self._overlay,
+            text="",
+            font=ctk.CTkFont("Courier New", 26, weight="bold"),
+            text_color=self.PLAYER_COLOR,
+        )
+        self._ov_title.pack(pady=(22, 4))
+        self._ov_body = ctk.CTkLabel(
+            self._overlay,
+            text="",
+            font=ctk.CTkFont("Courier New", 13),
+            text_color="#aaa",
+            justify="center",
+        )
+        self._ov_body.pack(pady=(0, 8))
+        self._play_again_btn = ctk.CTkButton(
+            self._overlay,
+            text=s["play_again"],
+            width=130,
+            height=40,
+            corner_radius=10,
+            font=ctk.CTkFont(size=13, weight="bold"),
+            command=self._setup_game,
+        )
+        self._play_again_btn.pack(pady=(4, 22))
+
+        self._container.bind(
+            "<Configure>", lambda e: self._container.after_idle(self._redraw)
+        )
+
+    # ── Helpers ───────────────────────────────────────────────────────────────
+    def _get_strings(self):
+        lang = self._language.get() if self._language else "english"
+        return self.UI_STRINGS[lang]
+
+    def _word_bank(self) -> list:
+        """Return the word list for the current difficulty.
+
+        Custom bank (loaded via ``load_word_bank``) takes priority; falls
+        back to the built-in tier if the custom bank has no entry for this
+        difficulty.
+        """
+        diff = self._difficulty.get() if self._difficulty else "Medium"
+        builtin = {
+            "Easy": self.AMHARIC_WORDS_EASY,
+            "Medium": self.AMHARIC_WORDS_MEDIUM,
+            "Hard": self.AMHARIC_WORDS_HARD,
+        }.get(diff, self.AMHARIC_WORDS_MEDIUM)
+
+        if self._custom_word_bank:
+            return self._custom_word_bank.get(diff, builtin)
+        return builtin
+
+    def _on_lang_change(self, val):
+        self._language.set("amharic" if val == "አማርኛ" else "english")
+        self._refresh_ui_strings()
+        if not self._game_active:
+            self._setup_game()
+
+    def _on_diff_change(self, display_val):
+        s = self._get_strings()
+        for k, v in s["difficulties"].items():
+            if v == display_val:
+                self._difficulty.set(k)
+                break
+        if not self._game_active:
+            self._setup_game()
+
+    def _refresh_ui_strings(self):
+        if not self._container:
+            return
+        s = self._get_strings()
+        self._title_lbl.configure(text=s["title"])
+        self._status_lbl.configure(text=s["subtitle"])
+        self._lang_lbl.configure(text=s["language"])
+        self._diff_lbl.configure(text=s["difficulty"])
+        self._start_btn.configure(text=s["start_btn"])
+        self._play_again_btn.configure(text=s["play_again"])
+        diff_vals = ["Easy", "Medium", "Hard"]
+        diff_display = [s["difficulties"][k] for k in diff_vals]
+        cur_key = self._difficulty.get()
+        self._diff_menu.configure(values=diff_display)
+        self._diff_menu.set(s["difficulties"].get(cur_key, diff_display[1]))
+        self._update_hud()
+
+    def _on_back_click(self):
+        if self.on_back_button_pressed:
+            self.on_back_button_pressed.send(self)
+
+    # ── Countdown lights ──────────────────────────────────────────────────────
+    def _build_countdown_lights(self):
+        c = self._cd_canvas
+        c.delete("all")
+        self._cd_items = []
+        r, cy = 16, 24
+        for i, cx in enumerate([22, 60, 98]):
+            c.create_oval(
+                cx - r - 2,
+                cy - r - 2,
+                cx + r + 2,
+                cy + r + 2,
+                fill="#080818",
+                outline="#1a1a35",
+                width=1,
+            )
+            light = c.create_oval(
+                cx - r,
+                cy - r,
+                cx + r,
+                cy + r,
+                fill=self.LIGHT_COLORS_OFF[i],
+                outline="",
+            )
+            c.create_oval(
+                cx - r + 4,
+                cy - r + 4,
+                cx - r + 10,
+                cy - r + 10,
+                fill="#ffffff",
+                outline="white",
+            )
+            self._cd_items.append(light)
+        self._cd_go_text = c.create_text(
+            60, 24, text="", fill="#4caf50", font=("Courier New", 18, "bold")
+        )
+
+    def _set_cd_light(self, idx, on):
+        self._cd_canvas.itemconfig(
+            self._cd_items[idx],
+            fill=self.LIGHT_COLORS_ON[idx] if on else self.LIGHT_COLORS_OFF[idx],
+        )
+
+    def _open_countdown(self):
+        if self._cd_active:
+            return
+        self._start_btn.configure(state="disabled")
+        self._lang_menu.configure(state="disabled")
+        self._diff_menu.configure(state="disabled")
+        self._status_lbl.configure(text=self._get_strings()["get_ready"])
+        self._cd_active = True
+        self._cd_step = 0
+        for i in range(3):
+            self._set_cd_light(i, False)
+        self._cd_canvas.itemconfig(self._cd_go_text, text="")
+        self._cd_tick()
+
+    def _cd_tick(self):
+        for i in range(3):
+            self._set_cd_light(i, False)
+        self._cd_canvas.itemconfig(self._cd_go_text, text="")
+        if self._cd_step < 3:
+            self._set_cd_light(self._cd_step, True)
+            self._cd_step += 1
+            self._cd_job = self._container.after(900, self._cd_tick)
+        else:
+            for i in range(3):
+                self._set_cd_light(i, True)
+            self._cd_canvas.itemconfig(self._cd_go_text, text=self._get_strings()["go"])
+            self._cd_job = self._container.after(700, self._launch_game)
+
+    def _launch_game(self):
+        self._cd_active = False
+        self._container.after(
+            400,
+            lambda: (
+                self._cd_canvas.itemconfig(self._cd_go_text, text="")
+                if self._cd_canvas.winfo_exists()
+                else None
+            ),
+        )
+        for i in range(3):
+            self._set_cd_light(i, False)
+        s = self._get_strings()
+        self._game_active = True
+        self._start_time = time.time()
+        self._last_frame_time = time.time()
+        self._entry.configure(
+            state="normal",
+            placeholder_text=s["type_here"],
+            border_color=self.PLAYER_COLOR,
+        )
+        self._entry.focus()
+        self._status_lbl.configure(text="🚗  Dodge the oncoming cars!")
+        self._schedule_spawn()
+        self._animate()
+
+    # ── Game setup / teardown ─────────────────────────────────────────────────
+    def _band(self):
+        return self.DIFFICULTY_BANDS[self._difficulty.get()]
+
+    def _setup_game(self):
+        self._hide_overlay()
+        self._stop_game()
+        s = self._get_strings()
+
+        self._game_active = False
+        self._player_lane = self.LANES // 2
+        self._lives = self.LIVES_MAX
+        self._score = 0
+        self._words_typed = 0
+        self._cars = []
+        self._current_speed = float(self._band()["speed"])
+        self._hit_flash = 0
+        self._start_time = None
+
+        # ── Pick LANES unique words from the difficulty-appropriate bank ──
+        bank = self._word_bank()
+        if len(bank) >= self.LANES:
+            self._lane_words = random.sample(bank, self.LANES)
+        else:
+            self._lane_words = random.choices(bank, k=self.LANES)
+
+        self._input_var.set("")
+        self._entry.configure(
+            state="disabled", placeholder_text=s["waiting"], border_color="#333"
+        )
+        self._start_btn.configure(state="normal", text=s["start_btn"])
+        self._lang_menu.configure(state="normal")
+        self._diff_menu.configure(state="normal")
+        self._update_hud()
+        self._status_lbl.configure(text=s["subtitle"])
+        for i in range(3):
+            self._set_cd_light(i, False)
+        if self._cd_go_text:
+            self._cd_canvas.itemconfig(self._cd_go_text, text="")
+        self._container.after(50, self._redraw)
+
+    def _stop_game(self):
+        self._game_active = False
+        self._cd_active = False
+        for attr in ("_cd_job", "_anim_job", "_spawn_job"):
+            job = getattr(self, attr, None)
+            if job:
+                try:
+                    self._container.after_cancel(job)
+                except Exception:
+                    pass
+                setattr(self, attr, None)
+
+    # ── HUD ───────────────────────────────────────────────────────────────────
+    def _update_hud(self):
+        s = self._get_strings()
+        hearts = "❤️" * self._lives + "🖤" * (self.LIVES_MAX - self._lives)
+        self._lives_lbl.configure(text=f"{s['lives']}: {hearts}")
+        self._score_lbl.configure(text=f"{s['score']}: {self._score}")
+        if self._start_time:
+            elapsed = max(time.time() - self._start_time, 0.001)
+            wpm = int(self._words_typed / (elapsed / 60))
+            self._wpm_lbl.configure(text=f"{s['wpm']}: {wpm}")
+        else:
+            self._wpm_lbl.configure(text=f"{s['wpm']}: —")
+
+    # ── Spawn ─────────────────────────────────────────────────────────────────
+    def _spawn_interval_ms(self):
+        b = self._band()
+        tiers = self._score // self.RAMP_EVERY
+        return max(b["spawn_min_ms"], b["spawn_base_ms"] - tiers * b["spawn_ramp_ms"])
+
+    def _schedule_spawn(self):
+        if not self._game_active:
+            return
+        self._spawn_job = self._container.after(
+            self._spawn_interval_ms(), self._do_spawn
+        )
+
+    def _do_spawn(self):
+        if not self._game_active:
+            return
+        cw = self._canvas_width()
+        lane = random.randint(0, self.LANES - 1)
+        color = random.choice(self.NPC_COLOR_POOL)
+        self._cars.append(self._Car(lane, cw + self.SPAWN_X_PAD, color))
+        self._schedule_spawn()
+
+    # ── Input ─────────────────────────────────────────────────────────────────
+    def _on_input_change(self, *_):
+        if not self._game_active:
+            return
+        typed = self._input_var.get().strip()
+        for i, word in enumerate(self._lane_words):
+            if typed == word:
+                self._switch_to_lane(i)
+                self._input_var.set("")
+                return
+        self._draw_scene()
+
+    def _switch_to_lane(self, lane_idx):
+        self._player_lane = lane_idx
+        self._words_typed += 1
+        if self._words_typed % self.RAMP_EVERY == 0:
+            self._current_speed += self.SPEED_RAMP
+        bank = self._word_bank()
+        used = {self._lane_words[i] for i in range(self.LANES) if i != lane_idx}
+        pool = [w for w in bank if w not in used] or bank
+        self._lane_words[lane_idx] = random.choice(pool)
+        self._update_hud()
+        self._redraw()
+
+    # ── Animation loop ────────────────────────────────────────────────────────
+    def _animate(self):
+        if not self._game_active:
+            return
+        now = time.time()
+        dt = min(now - (self._last_frame_time or now), 0.1)
+        self._last_frame_time = now
+        for car in self._cars:
+            car.x -= self._current_speed * dt
+
+        hit_threshold = self.CAR_W * self.HIT_BOX_RATIO
+        surviving = []
+        score_changed = False
+        for car in self._cars:
+            if not car.resolved:
+                if (
+                    car.lane == self._player_lane
+                    and abs(car.x - self.PLAYER_X) < hit_threshold
+                ):
+                    car.resolved = True
+                    self._hit_flash = self.HIT_FLASH_FRAMES
+                    self._lives -= 1
+                    self._update_hud()
+                    if self._lives <= 0:
+                        surviving.append(car)
+                        self._cars = surviving
+                        self._end_game()
+                        return
+                elif car.x < self.PLAYER_X - self.CAR_W:
+                    car.resolved = True
+                    self._score += 1
+                    score_changed = True
+            if car.x > -(self.CAR_W * 2):
+                surviving.append(car)
+        self._cars = surviving
+        if score_changed:
+            self._update_hud()
+        if self._hit_flash > 0:
+            self._hit_flash -= 1
+        self._redraw()
+        self._anim_job = self._container.after(self.FRAME_MS, self._animate)
+
+    # ── End game ──────────────────────────────────────────────────────────────
+    def _end_game(self):
+        self._game_active = False
+        for attr in ("_anim_job", "_spawn_job"):
+            job = getattr(self, attr, None)
+            if job:
+                try:
+                    self._container.after_cancel(job)
+                except Exception:
+                    pass
+                setattr(self, attr, None)
+        self._entry.configure(state="disabled")
+        self._start_btn.configure(state="normal")
+        s = self._get_strings()
+        elapsed = max(time.time() - (self._start_time or time.time()), 0.001)
+        wpm = int(self._words_typed / (elapsed / 60))
+        body = (
+            f"{s['your_score']}: {self._score}\n"
+            f"{s['your_wpm']}: {wpm}\n\n"
+            f"{s['well_done']}"
+        )
+        self._show_overlay(s["game_over"], body)
+
+    # ── Drawing ───────────────────────────────────────────────────────────────
+    def _canvas_width(self):
+        w = self._canvas.winfo_width()
+        return w if w > 100 else 860
+
+    def _canvas_height(self):
+        h = self._canvas.winfo_height()
+        return h if h > 50 else self.TRACK_H * self.LANES + 30
+
+    def _lane_cy(self, lane):
+        return lane * self.TRACK_H + 15 + self.TRACK_H // 2
+
+    def _redraw(self):
+        self._draw_track()
+        self._draw_scene()
+
+    def _draw_track(self):
+        c = self._canvas
+        cw = self._canvas_width()
+        ch = self._canvas_height()
+        c.delete("track")
+
+        # ── Full-canvas road base ──────────────────────────────────────────
+        c.create_rectangle(0, 0, cw, ch, fill=self.ROAD_COLOR, outline="", tags="track")
+
+        # ── Thin grass edge strips (top 15 px, bottom 15 px only) ─────────
+        GRASS_EDGE = 15
+        c.create_rectangle(
+            0, 0, cw, GRASS_EDGE, fill=self.GRASS_COLOR, outline="", tags="track"
+        )
+        # Bottom grass only goes to actual canvas height, not beyond the last lane
+        last_lane_bottom = self.LANES * self.TRACK_H + GRASS_EDGE
+        c.create_rectangle(
+            0, last_lane_bottom, cw, ch, fill=self.GRASS_COLOR, outline="", tags="track"
+        )
+
+        # ── Lane road surfaces + dashed dividers ──────────────────────────
+        for lane in range(self.LANES):
+            y0 = lane * self.TRACK_H + GRASS_EDGE
+            y1 = y0 + self.TRACK_H
+            c.create_rectangle(
+                0, y0 + 3, cw, y1 - 3, fill=self.ROAD_COLOR, outline="", tags="track"
+            )
+            if lane < self.LANES - 1:
+                for x in range(0, cw, 28):
+                    c.create_rectangle(
+                        x,
+                        y1 - 7,
+                        x + 14,
+                        y1 - 5,
+                        fill=self.STRIPE_COLOR,
+                        outline="",
+                        tags="track",
+                    )
+
+        # ── Player zone: subtle semi-transparent tint (NOT a solid wall) ──
+        # The road still shows through behind the player car.
+        gx = self.PLAYER_X + self.CAR_W // 2 + 12
+        # Stipple gives a darkened-but-see-through effect on Tk canvas
+        c.create_rectangle(
+            0, 0, gx, ch, fill="#09091a", outline="", stipple="gray50", tags="track"
+        )
+        c.create_line(gx, 0, gx, ch, fill="#1e1e3a", width=2, dash=(6, 4), tags="track")
+
+    def _draw_scene(self):
+        c = self._canvas
+        typed = self._input_var.get().strip() if self._input_var else ""
+        c.delete("car")
+        c.delete("word")
+
+        for lane in range(self.LANES):
+            word = self._lane_words[lane] if lane < len(self._lane_words) else ""
+            cy = self._lane_cy(lane)
+            is_player = lane == self._player_lane
+
+            danger = any(
+                car.lane == lane
+                and self.PLAYER_X < car.x < self.PLAYER_X + self.DANGER_LOOKAHEAD
+                for car in self._cars
+            )
+
+            if is_player:
+                word_color = self.WORD_PLAYER_CLR
+            elif danger:
+                word_color = self.WORD_DANGER_CLR
+            else:
+                word_color = self.WORD_DEFAULT_CLR
+
+            is_partial = bool(typed) and word.startswith(typed) and not is_player
+            if is_partial:
+                est_w = max(len(word) * 14, 40)
+                c.create_rectangle(
+                    self.WORD_X - 8,
+                    cy - 14,
+                    self.WORD_X + est_w + 8,
+                    cy + 14,
+                    fill="#0d2a0d",
+                    outline="#4caf50",
+                    width=1,
+                    tags="word",
+                )
+                word_color = self.WORD_HINT_CLR
+
+            c.create_text(
+                self.WORD_X,
+                cy,
+                text=word,
+                fill=word_color,
+                font=("Courier New", 13, "bold"),
+                anchor="w",
+                tags="word",
+            )
+
+            if is_player:
+                c.create_text(
+                    self.WORD_X - 16,
+                    cy,
+                    text="▶",
+                    fill=self.PLAYER_COLOR,
+                    font=("Courier New", 11),
+                    anchor="e",
+                    tags="word",
+                )
+            if danger and not is_player:
+                c.create_text(
+                    self.WORD_X - 16,
+                    cy,
+                    text="⚠",
+                    fill=self.WORD_DANGER_CLR,
+                    font=("Courier New", 11),
+                    anchor="e",
+                    tags="word",
+                )
+
+        for car in self._cars:
+            self._draw_car(
+                c, int(car.x), self._lane_cy(car.lane), car.color, facing_left=True
+            )
+
+        pcol = self.HIT_COLOR if self._hit_flash > 0 else self.PLAYER_COLOR
+        self._draw_car(
+            c,
+            self.PLAYER_X,
+            self._lane_cy(self._player_lane),
+            pcol,
+            label="YOU",
+            facing_left=False,
+        )
+
+    def _draw_car(self, c, x, y, color, label="", facing_left=True):
+        hw, hh = self.CAR_W // 2, self.CAR_H // 2
+        c.create_oval(
+            x - hw + 4,
+            y + hh - 2,
+            x + hw - 4,
+            y + hh + 5,
+            fill="#000",
+            outline="",
+            tags="car",
+        )
+        c.create_rectangle(
+            x - hw, y - hh + 6, x + hw, y + hh, fill=color, outline="", tags="car"
+        )
+        c.create_rectangle(
+            x - hw + 10,
+            y - hh,
+            x + hw - 8,
+            y - hh + 8,
+            fill=color,
+            outline="",
+            tags="car",
+        )
+        c.create_rectangle(
+            x - hw + 11,
+            y - hh + 1,
+            x + hw - 9,
+            y - hh + 7,
+            fill="#1a2a3a",
+            outline="",
+            tags="car",
+        )
+        if facing_left:
+            c.create_rectangle(
+                x - hw,
+                y - hh + 8,
+                x - hw + 4,
+                y - hh + 14,
+                fill="#fffde7",
+                outline="",
+                tags="car",
+            )
+            c.create_rectangle(
+                x + hw - 4,
+                y - hh + 8,
+                x + hw,
+                y - hh + 14,
+                fill="#ff1744",
+                outline="",
+                tags="car",
+            )
+        else:
+            c.create_rectangle(
+                x - hw,
+                y - hh + 8,
+                x - hw + 4,
+                y - hh + 14,
+                fill="#ff1744",
+                outline="",
+                tags="car",
+            )
+            c.create_rectangle(
+                x + hw - 4,
+                y - hh + 8,
+                x + hw,
+                y - hh + 14,
+                fill="#fffde7",
+                outline="",
+                tags="car",
+            )
+        for wx in [x - hw + 9, x + hw - 9]:
+            c.create_oval(
+                wx - 7,
+                y + hh - 9,
+                wx + 7,
+                y + hh + 5,
+                fill="#222",
+                outline="#444",
+                width=2,
+                tags="car",
+            )
+            c.create_oval(
+                wx - 3,
+                y + hh - 5,
+                wx + 3,
+                y + hh + 1,
+                fill="#555",
+                outline="",
+                tags="car",
+            )
+        if label:
+            c.create_text(
+                x - hw - 6,
+                y,
+                text=label,
+                fill=color,
+                font=("Courier New", 9, "bold"),
+                anchor="e",
+                tags="car",
+            )
+
+    # ── Overlay ───────────────────────────────────────────────────────────────
+    def _show_overlay(self, title, body):
+        self._ov_title.configure(text=title)
+        self._ov_body.configure(text=body)
+        self._overlay.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.60)
+
+    def _hide_overlay(self):
+        if self._overlay:
+            self._overlay.place_forget()

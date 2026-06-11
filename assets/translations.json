@@ -214,5 +214,13 @@
     "you are in a typing race, with 3 other cars. type out the provided phargraph before the other cars and grab your crown!":{
         "en":"you are in a typing race, with 3 other cars. type out the provided phargraph before the other cars and grab your crown!",
         "am":"የጽሁፍ ወድድር ውስት ኖት፣ ቶሎ በልው የተገለጸውን ጽሁፍ ጽፈው ዋንጫዎን የብሉ."
-    }   
+    },
+    "Dodge the cars":{
+        "en":"Dodge the cars",
+        "am":"የመኪና አለፋ"
+    },
+    "you find yourself driving the wrong direction on a highway! you must now dodge the incoming cars, using your keyboard":{
+        "en":"you find yourself driving the wrong direction on a highway! you must now dodge the incoming cars, using your keyboard",
+        "am":"በተጨናነቅ መንገድ ላይ በተቃራኒ መንገድ እየሄዱ ነው፤ እንዳይጋጩ ጹፍ በመጠቀም መኪናዎችን ይለፉ"
+    }
 }

@@ -316,3 +316,41 @@ class MainMenuToAmharicRaceGameMenu:
     def on_back_button_pressed(self, sender):
         self.amharic_race_menu.close_menu()
         self.main_menu.open_menu()
+
+
+class MainMenuToAmharicDodgeGameMenu:
+    def __init__(self, root, main_menu: MainMenu, amharic_dodge: AmharicDodgeMenu):
+        if not main_menu:
+            warnings.warn(
+                "attempted to create main menu to amharic dodge menu connection with none main menu, menu connector not created"
+            )
+            return
+        if not root:
+            warnings.warn(
+                "attempted to create main menu to amharic dodge menu connection with none root, menu connector not created"
+            )
+            return
+        if not amharic_dodge:
+            warnings.warn(
+                "attempted to create main menu to amharic dodge menu connection with none typing dodge menu, menu connector not created"
+            )
+            return
+
+        self.main_menu: MainMenu = main_menu
+        self.amharic_dodge_menu: AmharicDodgeMenu = amharic_dodge
+        self.root = root
+
+        self.main_menu.on_amharic_dodge_activity_card_icon_pressed.connect(
+            self.on_amharic_dodge_button_pressed
+        )
+        self.amharic_dodge_menu.on_back_button_pressed.connect(
+            self.on_back_button_pressed
+        )
+
+    def on_amharic_dodge_button_pressed(self, sender):
+        self.main_menu.close_menu()
+        self.amharic_dodge_menu.open_menu(self.root)
+
+    def on_back_button_pressed(self, sender):
+        self.amharic_dodge_menu.close_menu()
+        self.main_menu.open_menu()
