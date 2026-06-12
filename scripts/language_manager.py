@@ -21,8 +21,12 @@ class LanguageManager:
             self.current_lang = default_lang
 
         self.registered_widgets = []
-        with open(self.TRANSLATIONS_FILE_PATH, "r") as file:
-            LanguageManager.TRANSLATIONS_DICT = json.load(file)
+        try:
+            with open(self.TRANSLATIONS_FILE_PATH, "r", encoding="utf-8") as file:
+                LanguageManager.TRANSLATIONS_DICT = json.load(file)
+        except Exception as exc:
+            print(f"[LanguageManager] Failed to load translations: {exc}")
+            LanguageManager.TRANSLATIONS_DICT = {}
 
     def set_language(self, lang):
         if not lang:

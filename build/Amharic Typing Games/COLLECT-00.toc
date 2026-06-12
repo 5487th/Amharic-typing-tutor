@@ -15,6 +15,10 @@
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\PIL\\_imagingcms.cp313-win_amd64.pyd',
    'EXTENSION'),
+  ('PIL\\_imagingft.cp313-win_amd64.pyd',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\PIL\\_imagingft.cp313-win_amd64.pyd',
+   'EXTENSION'),
   ('PIL\\_imagingmath.cp313-win_amd64.pyd',
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\PIL\\_imagingmath.cp313-win_amd64.pyd',
@@ -3851,6 +3855,10 @@
    'D:\\misc\\python projects\\Amharic typing tutor\\assets\\images\\amharic '
    'typing test icon.png',
    'DATA'),
+  ('assets\\images\\amharic_dodge_icon.png',
+   'D:\\misc\\python projects\\Amharic typing '
+   'tutor\\assets\\images\\amharic_dodge_icon.png',
+   'DATA'),
   ('assets\\images\\amharic_rain_icon.png',
    'D:\\misc\\python projects\\Amharic typing '
    'tutor\\assets\\images\\amharic_rain_icon.png',
@@ -3981,6 +3989,18 @@
   ('customtkinter\\assets\\themes\\green.json',
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\customtkinter\\assets\\themes\\green.json',
+   'DATA'),
+  ('data\\profile_pictures\\39987981_profile_picture.png',
+   'D:\\misc\\python projects\\Amharic typing '
+   'tutor\\data\\profile_pictures\\39987981_profile_picture.png',
+   'DATA'),
+  ('data\\profile_pictures\\illitrate_profile_picture.png',
+   'D:\\misc\\python projects\\Amharic typing '
+   'tutor\\data\\profile_pictures\\illitrate_profile_picture.png',
+   'DATA'),
+  ('data\\profile_pictures\\ቆንጂቱ_profile_picture.png',
+   'D:\\misc\\python projects\\Amharic typing '
+   'tutor\\data\\profile_pictures\\ቆንጂቱ_profile_picture.png',
    'DATA'),
   ('data\\users.db',
    'D:\\misc\\python projects\\Amharic typing tutor\\data\\users.db',

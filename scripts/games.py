@@ -14,6 +14,8 @@ import threading
 import random
 import math
 import tkinter as tk
+import sqlite3
+import datetime
 
 try:
     import winsound as _winsound
@@ -25,704 +27,6 @@ from scripts.menus import Menu
 
 
 # claude aided
-class TypingTestMenu(Menu):
-    """
-    Usage
-    -----
-        menu = TypingTestMenu(root, language_manager, word_bank_path="assets/words_en.json")
-        menu.open_menu()
-        menu.close_menu()
-
-    Signals
-    -------
-        menu.on_back_button_pressed, fired when the back button is clicked
-    """
-
-    # ── colour tokens ──────────────────────────────────────────────────────────
-    _CORRECT_W = "#22c55e"
-    _INCORRECT_W = "#ef4444"
-    _CORRECT_C = "#86efac"
-    _INCORRECT_C = "#fca5a5"
-    _UNTYPED_DARK = "#6b7280"
-    _UNTYPED_LITE = "#9ca3af"
-    _ACTIVE_FG_D = "#e2e8f0"
-    _ACTIVE_FG_L = "#1e293b"
-    _ACTIVE_BG_D = "#374151"
-    _ACTIVE_BG_L = "#dbeafe"
-    _CARET_BG = "#3b82f6"
-    _CARET_FG = "#ffffff"
-
-    # ── built-in word bank ─────────────────────────────────────────────────────
-    _DEFAULT_WORDS = [
-        "ነው",
-        "ነበር",
-        "አለ",
-        "የለም",
-        "አይደለም",
-        "ይሆናል",
-        "ሆነ",
-        "አለች",
-        "ነች",
-        "ናቸው",
-        "ሆኑ",
-        "አደረገ",
-        "አለ",
-        "ሄደ",
-        "መጣ",
-        "አየ",
-        "አወቀ",
-        "ወሰደ",
-        "ሰጠ",
-        "ተናገረ",
-        "አለፈ",
-        "ቆመ",
-        "ጀመረ",
-        "ጨረሰ",
-        "ተመለሰ",
-        "ፈለገ",
-        "አገኘ",
-        "ሞከረ",
-        "ቻለ",
-        "ሞተ",
-        "እና",
-        "ወይም",
-        "ግን",
-        "ስለዚህ",
-        "ምክንያቱም",
-        "እንዲሁም",
-        "አሁን",
-        "ከዚያ",
-        "እዚህ",
-        "እዚያ",
-        "ዛሬ",
-        "ትናንት",
-        "ነገ",
-        "ብዙ",
-        "ትንሽ",
-        "ሁሉ",
-        "አንድ",
-        "ሁለት",
-        "ሦስት",
-        "አራት",
-        "አምስት",
-        "ስድስት",
-        "ሰባት",
-        "ስምንት",
-        "ዘጠኝ",
-        "አስር",
-        "ሰው",
-        "ልጅ",
-        "ሴት",
-        "ወንድ",
-        "ቤት",
-        "ስም",
-        "ጊዜ",
-        "ቀን",
-        "ዓመት",
-        "ወር",
-        "ሥራ",
-        "ገንዘብ",
-        "ምግብ",
-        "ውሃ",
-        "አገር",
-        "ከተማ",
-        "መንገድ",
-        "ትምህርት",
-        "መጽሐፍ",
-        "ቋንቋ",
-        "ቤተሰብ",
-        "ወዳጅ",
-        "ፍቅር",
-        "ሰላም",
-        "ችግር",
-        "መልስ",
-        "ጥያቄ",
-        "ምክር",
-        "ሐሳብ",
-        "ፈቃድ",
-        "እርዳታ",
-        "እኔ",
-        "አንተ",
-        "እሱ",
-        "እሷ",
-        "እኛ",
-        "እናንተ",
-        "እነሱ",
-        "የእኔ",
-        "የአንተ",
-        "የእሱ",
-        "ጥሩ",
-        "መጥፎ",
-        "ትልቅ",
-        "ትንሽ",
-        "አዲስ",
-        "ያረጀ",
-        "ፈጣን",
-        "ዝግተኛ",
-        "ቀላል",
-        "ከባድ",
-    ]
-
-    def __init__(self, root, language_manager: LanguageManager, word_bank_path=None):
-        super().__init__()
-        if not root:
-            warnings.warn(
-                "attempted to create TypingTestMenu with none root, menu not created"
-            )
-            return
-        if not language_manager:
-            warnings.warn(
-                "attempted to create TypingTestMenu with none language_manager, menu not created"
-            )
-            return
-
-        self.root = root
-        self.language_manager = language_manager
-        self.on_back_button_pressed = signal(f"on back button pressed {self}")
-
-        self._word_bank = self._load_word_bank(word_bank_path)
-
-        # typing-test state
-        self._words: list = []
-        self._committed: list = []  # list[bool] – True = word typed correctly
-        self._current_word_idx: int = 0
-        self._current_typed: str = ""
-        self._start_time = None
-        self._running: bool = False
-        self._timer_thread = None
-        self._test_duration: int = 30
-        self._time_left: float = 30.0
-        self._wpm: int = 0
-        self._acc: int = 100
-        self._finished: bool = False
-
-        # widget references (None until open_menu builds them)
-        self.main_frame = None
-        self.header_frame = None
-        self.back_button = None
-        self.title_label = None
-        self.control_bar = None  # NEW – sits between header and text area
-        self.time_label = None
-        self.stat_label = None
-        self._dur_buttons: dict = {}
-        self.text_canvas = None
-        self.input_field = None
-        self._input_var = None
-        self.wpm_label = None
-        self.acc_label = None
-        self.restart_btn = None
-
-        # result overlay (a CTkFrame placed inside main_frame, not a Toplevel)
-        self._result_overlay = None
-        self._result_wpm_val = None
-        self._result_acc_val = None
-
-    # ── Menu protocol ──────────────────────────────────────────────────────────
-
-    def open_menu(self):
-        if not self.main_frame:
-            self.main_frame = CTkFrame(self.root, fg_color="transparent")
-            self._build_ui()
-
-        self.main_frame.pack(expand=True, fill="both")
-        self._new_test()
-        self.root.update_idletasks()
-
-    def close_menu(self):
-        self._running = False
-        if self.main_frame:
-            self.main_frame.pack_forget()
-        self.root.update_idletasks()
-
-    # ── Build ──────────────────────────────────────────────────────────────────
-
-    def _build_ui(self):
-        self._build_header()
-        self._build_control_bar()  # NEW position: below header, above text
-        self._build_text_area()
-        self._build_input_area()
-        self._build_stats_bar()
-        self._build_result_overlay()
-
-    # ── Header: back button + title only ──────────────────────────────────────
-
-    def _build_header(self):
-        if not self.header_frame:
-            self.header_frame = CTkFrame(self.main_frame, fg_color="transparent")
-            self.header_frame.pack(fill="x", side="top")
-
-        back_black_icon_path = (
-            pathlib.Path(__file__).parent.parent
-            / "assets"
-            / "images"
-            / "icons"
-            / "back_icon_black.png"
-        )
-        back_white_icon_path = (
-            pathlib.Path(__file__).parent.parent
-            / "assets"
-            / "images"
-            / "icons"
-            / "back_icon_white.png"
-        )
-
-        if not self.back_button:
-            self.back_button = ImageButton(
-                self.header_frame,
-                light_image_path=back_black_icon_path,
-                dark_image_path=back_white_icon_path,
-                sizex=30,
-                sizey=30,
-                size_change_amount=1,
-            )
-            self.back_button.pack(side="left", pady=10, padx=10)
-            self.back_button.on_mouse_click.connect(self._on_back_icon_pressed)
-
-        if not self.title_label:
-            self.title_label = CTkLabel(self.header_frame, text="", font=("Roboto", 25))
-            self.language_manager.register_widget(self.title_label, "typing_test_title")
-            self.title_label.pack(side="left", pady=10, padx=4)
-
-    # ── Control bar: duration buttons (centred) + countdown on the right ───────
-
-    def _build_control_bar(self):
-        """
-        A horizontal bar that sits directly below the header.
-
-        Layout (left-to-right):
-            [spacer]  Time:  15s  30s  60s  120s  [spacer]    42
-                      ← centred group →                   ← right-pinned
-        """
-        if not self.control_bar:
-            self.control_bar = CTkFrame(self.main_frame, fg_color="transparent")
-            self.control_bar.pack(fill="x", padx=10, pady=(0, 8))
-
-        # Right-side countdown label – packed first so it anchors to the right
-        # before the centre group is placed.
-        self.stat_label = CTkLabel(
-            self.control_bar,
-            text=str(self._test_duration),
-            font=("Roboto", 34, "bold"),
-        )
-        self.stat_label.pack(side="right", padx=16)
-
-        # Centre group: "Time:" label + duration buttons
-        centre_group = CTkFrame(self.control_bar, fg_color="transparent")
-        centre_group.pack(side="left", expand=True)  # expand pushes it to centre
-
-        self.time_label = CTkLabel(centre_group, text="", font=("Roboto", 13))
-        self.language_manager.register_widget(self.time_label, "typing_time_label")
-        self.time_label.pack(side="left", padx=(0, 6))
-
-        for dur in [15, 30, 60, 120]:
-            b = CTkButton(
-                centre_group,
-                text=f"{dur}s",
-                width=52,
-                height=30,
-                font=("Roboto", 13),
-                command=lambda d=dur: self._set_duration(d),
-            )
-            b.pack(side="left", padx=3)
-            self._dur_buttons[dur] = b
-
-    # ── Text area ──────────────────────────────────────────────────────────────
-
-    def _build_text_area(self):
-        text_frame = CTkFrame(self.main_frame, corner_radius=10)
-        text_frame.pack(fill="x", padx=10, pady=(0, 5))
-
-        self.text_canvas = CTkTextbox(
-            text_frame,
-            font=("Courier New", 22, "bold"),
-            wrap="word",
-            state="disabled",
-            height=180,
-            border_width=0,
-        )
-        self.text_canvas.pack(fill="both", expand=True, padx=6, pady=6)
-
-    # ── Input area ─────────────────────────────────────────────────────────────
-
-    def _build_input_area(self):
-        input_frame = CTkFrame(self.main_frame, fg_color="transparent")
-        input_frame.pack(fill="x", padx=10, pady=50)
-
-        self._input_var = StringVar()
-        self._input_var.trace_add("write", self._on_input_change)
-
-        self.input_field = CTkEntry(
-            input_frame,
-            textvariable=self._input_var,
-            font=("Courier New", 17, "bold"),
-            height=44,
-            placeholder_text="",
-        )
-        self.input_field.pack(fill="x")
-        self.input_field.bind("<KeyRelease>", self._on_key_release)
-
-    # ── Stats bar ──────────────────────────────────────────────────────────────
-
-    def _build_stats_bar(self):
-        stats_frame = CTkFrame(self.main_frame, fg_color="transparent")
-        stats_frame.pack(fill="x", padx=10, pady=5)
-
-        self.wpm_label = CTkLabel(stats_frame, text="", font=("Roboto", 14, "bold"))
-        self.language_manager.register_widget(self.wpm_label, "typing_wpm_live")
-        self.wpm_label.pack(side="left", padx=(0, 16))
-
-        self.acc_label = CTkLabel(stats_frame, text="", font=("Roboto", 14, "bold"))
-        self.language_manager.register_widget(self.acc_label, "typing_acc_live")
-        self.acc_label.pack(side="left")
-
-        self.restart_btn = CTkButton(
-            stats_frame,
-            text="",
-            width=110,
-            height=34,
-            font=("Roboto", 14),
-            command=self._new_test,
-        )
-        self.language_manager.register_widget(self.restart_btn, "typing_restart")
-        self.restart_btn.pack(side="right")
-
-    # ── Result overlay (inline, no Toplevel) ───────────────────────────────────
-
-    def _build_result_overlay(self):
-        """
-        A card Frame placed with place() over the centre of main_frame.
-        Hidden by default; shown on test completion; dismissed on restart.
-        """
-        self._result_overlay = CTkFrame(
-            self.main_frame,
-            corner_radius=16,
-            border_width=2,
-        )
-        # Do NOT pack/place yet – shown only when the test finishes.
-
-        # Title
-        self._result_title_lbl = CTkLabel(
-            self._result_overlay, text="", font=("Roboto", 18, "bold")
-        )
-        self.language_manager.register_widget(
-            self._result_title_lbl, "typing_test_complete"
-        )
-        self._result_title_lbl.pack(pady=(24, 6))
-
-        # Stats row – two equal columns with enforced minimum width so the
-        # values never crowd each other regardless of digit count.
-        stats_inner = CTkFrame(self._result_overlay)
-        stats_inner.pack(padx=24, pady=8, fill="x")
-        stats_inner.grid_columnconfigure(0, weight=1, minsize=120)
-        stats_inner.grid_columnconfigure(1, weight=1, minsize=120)
-
-        wpm_hdr = CTkLabel(stats_inner, text="", font=("Roboto", 13))
-        self.language_manager.register_widget(wpm_hdr, "typing_wpm")
-        wpm_hdr.grid(row=0, column=0, pady=(16, 2), padx=16)
-
-        acc_hdr = CTkLabel(stats_inner, text="", font=("Roboto", 13))
-        self.language_manager.register_widget(acc_hdr, "typing_accuracy")
-        acc_hdr.grid(row=0, column=1, pady=(16, 2), padx=16)
-
-        self._result_wpm_val = CTkLabel(
-            stats_inner, text="—", font=("Roboto", 52, "bold")
-        )
-        self._result_wpm_val.grid(row=1, column=0, pady=(0, 16), padx=16)
-
-        self._result_acc_val = CTkLabel(
-            stats_inner, text="—", font=("Roboto", 52, "bold")
-        )
-        self._result_acc_val.grid(row=1, column=1, pady=(0, 16), padx=16)
-
-        try_again_btn = CTkButton(
-            self._result_overlay,
-            text="",
-            font=("Roboto", 15),
-            height=40,
-            command=self._new_test,
-        )
-        self.language_manager.register_widget(try_again_btn, "typing_try_again")
-        try_again_btn.pack(pady=(6, 22), padx=30, fill="x")
-
-    def _show_result_overlay(self):
-        """Centre the overlay card over main_frame using place()."""
-        self._result_overlay.place(relx=0.5, rely=0.5, anchor="center")
-        self._result_overlay.lift()
-
-    def _hide_result_overlay(self):
-        self._result_overlay.place_forget()
-
-    # ── Test logic ─────────────────────────────────────────────────────────────
-
-    def _new_test(self):
-        self._finished = False
-        self._running = False
-        self._start_time = None
-        self._time_left = float(self._test_duration)
-        self._committed = []
-        self._current_word_idx = 0
-        self._current_typed = ""
-        self._wpm = 0
-        self._acc = 100
-        self._words = random.choices(self._word_bank, k=70)
-
-        self._hide_result_overlay()
-
-        self._render_text()
-        self._input_var.set("")
-        self.input_field.configure(
-            state="normal",
-            placeholder_text=self.language_manager.translate("typing_placeholder")
-            or "",
-        )
-        self.input_field.focus()
-        self.stat_label.configure(text=str(self._test_duration))
-        self.wpm_label.configure(
-            text=self.language_manager.translate("typing_wpm_live") or "WPM: —"
-        )
-        self.acc_label.configure(
-            text=self.language_manager.translate("typing_acc_live") or "Accuracy: —%"
-        )
-        self._update_dur_buttons(self._test_duration)
-
-    def _set_duration(self, dur: int):
-        self._test_duration = dur
-        self._update_dur_buttons(dur)
-        self._new_test()
-
-    def _update_dur_buttons(self, active: int):
-        for dur, btn in self._dur_buttons.items():
-            if dur == active:
-                btn.configure(fg_color=("#1f6aa5", "#1f6aa5"))
-            else:
-                btn.configure(fg_color=("gray75", "gray25"))
-
-    # ── Input handlers ─────────────────────────────────────────────────────────
-
-    def _on_input_change(self, *_):
-        if self._finished:
-            return
-        value = self._input_var.get()
-        # The Amharic IME commits the current syllable by inserting a space.
-        # Detect that here and treat it the same as _commit_word().
-        if value.endswith(" ") or value.endswith("\u00a0"):
-            self._commit_word(value.rstrip())
-            return
-        self._current_typed = value
-        if self._current_typed and not self._running:
-            self._start_timer()
-        self._render_text()
-
-    def _on_key_release(self, _event):
-        if self._finished:
-            return
-        value = self._input_var.get()
-        # Catch space from English keyboard path (IME not involved)
-        if value.endswith(" ") or value.endswith("\u00a0"):
-            self._commit_word(value.rstrip())
-            return
-        self._current_typed = value
-        self._render_text()
-
-    def _commit_word(self, typed: str):
-        """Shared word-commit logic called from both IME and direct space paths."""
-        if self._finished:
-            return
-        typed = typed.strip()
-        if not typed:
-            self._input_var.set("")
-            return
-
-        expected = self._words[self._current_word_idx]
-        self._committed.append(typed == expected)
-        self._current_word_idx += 1
-        self._current_typed = ""
-        self._input_var.set("")
-        self.input_field.after(
-            0,
-            lambda: (
-                self.input_field.delete(0, "end")
-                if self.input_field.winfo_exists()
-                else None
-            ),
-        )
-
-        if not self._running:
-            self._start_timer()
-
-        self._render_text()
-        self._update_stats()
-
-        if self._current_word_idx >= len(self._words):
-            self._finish()
-
-    def _on_back_icon_pressed(self, sender):
-        self.on_back_button_pressed.send(self)
-
-    # ── Timer ──────────────────────────────────────────────────────────────────
-
-    def _start_timer(self):
-        self._running = True
-        self._start_time = time.time()
-        self._timer_thread = threading.Thread(target=self._timer_loop, daemon=True)
-        self._timer_thread.start()
-
-    def _timer_loop(self):
-        while self._running:
-            elapsed = time.time() - self._start_time
-            self._time_left = max(0.0, self._test_duration - elapsed)
-            remaining = int(self._time_left) + (1 if self._time_left > 0 else 0)
-            if self.stat_label.winfo_exists():
-                self.stat_label.after(
-                    0, lambda r=remaining: self.stat_label.configure(text=str(r))
-                )
-            self._update_stats()
-            if self._time_left <= 0:
-                self._running = False
-                self.stat_label.after(0, self._finish)
-                break
-            time.sleep(0.1)
-
-    # ── Stats ──────────────────────────────────────────────────────────────────
-
-    def _update_stats(self):
-        if self._start_time is None:
-            return
-        elapsed = time.time() - self._start_time
-        if elapsed < 0.3:
-            return
-        n = len(self._committed)
-        total_chars = sum(len(self._words[i]) for i in range(n))
-        correct_chars = sum(
-            len(self._words[i]) for i, ok in enumerate(self._committed) if ok
-        )
-        wpm = int((correct_chars / 5) / (elapsed / 60))
-        acc = int((correct_chars / total_chars) * 100) if total_chars else 100
-        self._wpm = wpm
-        self._acc = acc
-
-        wpm_tpl = (
-            self.language_manager.translate("typing_wpm_live_value") or "WPM: {wpm}"
-        )
-        acc_tpl = (
-            self.language_manager.translate("typing_acc_live_value")
-            or "Accuracy: {acc}%"
-        )
-        self.wpm_label.after(
-            0, lambda: self.wpm_label.configure(text=wpm_tpl.format(wpm=wpm))
-        )
-        self.acc_label.after(
-            0, lambda: self.acc_label.configure(text=acc_tpl.format(acc=acc))
-        )
-
-    # ── Render ─────────────────────────────────────────────────────────────────
-
-    def _theme_colors(self):
-        mode = ctk.get_appearance_mode()
-        if mode == "Dark":
-            return self._UNTYPED_DARK, self._ACTIVE_FG_D, self._ACTIVE_BG_D
-        return self._UNTYPED_LITE, self._ACTIVE_FG_L, self._ACTIVE_BG_L
-
-    def _render_text(self):
-        untyped, active_fg, active_bg = self._theme_colors()
-        tb = self.text_canvas
-        tb.configure(state="normal")
-        tb.delete("1.0", "end")
-
-        tb.tag_config("correct_word", foreground=self._CORRECT_W)
-        tb.tag_config("incorrect_word", foreground=self._INCORRECT_W)
-        tb.tag_config("untyped", foreground=untyped)
-        tb.tag_config("cur_ok", foreground=self._CORRECT_C)
-        tb.tag_config("cur_err", foreground=self._INCORRECT_C)
-        tb.tag_config("cur_untyped", foreground=active_fg)
-        tb.tag_config("active_bg", background=active_bg)
-        tb.tag_config("caret", foreground=self._CARET_FG, background=self._CARET_BG)
-
-        typed = self._current_typed
-
-        for w_idx, word in enumerate(self._words):
-            if w_idx > 0:
-                tb.insert("end", " ", "untyped")
-
-            if w_idx < len(self._committed):
-                tag = "correct_word" if self._committed[w_idx] else "incorrect_word"
-                tb.insert("end", word, tag)
-
-            elif w_idx == self._current_word_idx:
-                for c_idx, ch in enumerate(word):
-                    if c_idx < len(typed):
-                        tag = "cur_ok" if typed[c_idx] == ch else "cur_err"
-                        tb.insert("end", ch, (tag, "active_bg"))
-                    elif c_idx == len(typed):
-                        tb.insert("end", ch, ("caret",))
-                    else:
-                        tb.insert("end", ch, ("cur_untyped", "active_bg"))
-
-                if len(typed) >= len(word):
-                    tb.insert("end", " ", ("caret",))
-                    for ex in typed[len(word) :]:
-                        tb.insert("end", ex, ("cur_err", "active_bg"))
-            else:
-                tb.insert("end", word, "untyped")
-
-        chars_before = sum(
-            len(self._words[i]) + 1 for i in range(self._current_word_idx)
-        )
-        try:
-            tb.see(f"1.0 + {chars_before} chars")
-        except Exception:
-            pass
-
-        tb.configure(state="disabled")
-
-    # ── Finish ─────────────────────────────────────────────────────────────────
-
-    def _finish(self):
-        if self._finished:
-            return
-        self._finished = True
-        self._running = False
-        self._update_stats()
-        self.input_field.configure(state="disabled")
-        self._result_wpm_val.configure(text=str(self._wpm))
-        self._result_acc_val.configure(text=f"{self._acc}%")
-        self._show_result_overlay()
-
-    # ── Word bank loader ───────────────────────────────────────────────────────
-
-    @staticmethod
-    def _load_word_bank(json_path) -> list:
-        """
-        Load words from a JSON file.  Accepts two formats:
-            ["word1", "word2", ...]
-            {"words": ["word1", "word2", ...]}
-        Falls back to the built-in list on any error.
-        """
-        if json_path is None:
-            return TypingTestMenu._DEFAULT_WORDS
-        path = pathlib.Path(json_path)
-        if not path.exists():
-            warnings.warn(
-                f"TypingTestMenu: word bank not found at {path}, using built-in words"
-            )
-            return TypingTestMenu._DEFAULT_WORDS
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            if isinstance(data, list):
-                return [str(w) for w in data if w]
-            if isinstance(data, dict) and "words" in data:
-                return [str(w) for w in data["words"] if w]
-            warnings.warn(
-                "TypingTestMenu: unexpected word bank format, using built-in words"
-            )
-        except Exception as exc:
-            warnings.warn(
-                f"TypingTestMenu: failed to load word bank ({exc}), using built-in words"
-            )
-        return TypingTestMenu._DEFAULT_WORDS
-
-
 class AmharicRainMenu(Menu):
 
     # ── Content ───────────────────────────────────────────────────────────────
@@ -4561,3 +3865,1224 @@ class AmharicDodgeMenu(Menu):
     def _hide_overlay(self):
         if self._overlay:
             self._overlay.place_forget()
+
+
+class TypingTestMenu(Menu):
+    """
+    Usage
+    -----
+        menu = TypingTestMenu(root, language_manager, word_bank_path="assets/words_en.json")
+        menu.open_menu()
+        menu.close_menu()
+
+    Signals
+    -------
+        menu.on_back_button_pressed, fired when the back button is clicked
+    """
+
+    # ── colour tokens ──────────────────────────────────────────────────────────
+    _CORRECT_W = "#22c55e"
+    _INCORRECT_W = "#ef4444"
+    _CORRECT_C = "#86efac"
+    _INCORRECT_C = "#fca5a5"
+    _UNTYPED_DARK = "#6b7280"
+    _UNTYPED_LITE = "#9ca3af"
+    _ACTIVE_FG_D = "#e2e8f0"
+    _ACTIVE_FG_L = "#1e293b"
+    _ACTIVE_BG_D = "#374151"
+    _ACTIVE_BG_L = "#dbeafe"
+    _CARET_BG = "#3b82f6"
+    _CARET_FG = "#ffffff"
+
+    # ── analytics colour tokens ────────────────────────────────────────────────
+    _GRAPH_BG_D = "#1a1b2e"
+    _GRAPH_BG_L = "#f1f5f9"
+    _GRAPH_AXIS_D = "#6b7280"
+    _GRAPH_AXIS_L = "#374151"
+    _GRAPH_GRID_D = "#2a2a40"
+    _GRAPH_GRID_L = "#e2e8f0"
+    _GRAPH_TXT_D = "#e2e8f0"
+    _GRAPH_TXT_L = "#1e293b"
+    _GRAPH_PT_D = "#60a5fa"
+    _GRAPH_PT_L = "#2563eb"
+    _GRAPH_LN_D = "#334155"
+    _GRAPH_LN_L = "#cbd5e1"
+    _GRAPH_AVG_D = "#f59e0b"
+    _GRAPH_AVG_L = "#d97706"
+
+    # ── analytics options (all class-level) ───────────────────────────────────
+    _YAXIS_OPTIONS = ["WPM", "Accuracy"]
+    _PERIOD_OPTIONS = ["Hour", "Day", "Week", "Month", "Year"]
+    _STAT_OPTIONS = ["Average", "Best", "Worst", "Count"]
+    _DB_NAME = "typing_results.db"
+    _GRAPH_PT_R = 5  # point radius in pixels
+    _GRAPH_MARGIN = (65, 25, 25, 55)  # left, right, top, bottom
+
+    # ── period → seconds lookup (class-level) ─────────────────────────────────
+    _PERIOD_SECONDS = {
+        "Hour": 3_600,
+        "Day": 86_400,
+        "Week": 604_800,
+        "Month": 2_592_000,
+        "Year": 31_536_000,
+    }
+
+    # ── built-in word bank ─────────────────────────────────────────────────────
+    _DEFAULT_WORDS = [
+        "ነው",
+        "ነበር",
+        "አለ",
+        "የለም",
+        "አይደለም",
+        "ይሆናል",
+        "ሆነ",
+        "አለች",
+        "ነች",
+        "ናቸው",
+        "ሆኑ",
+        "አደረገ",
+        "አለ",
+        "ሄደ",
+        "መጣ",
+        "አየ",
+        "አወቀ",
+        "ወሰደ",
+        "ሰጠ",
+        "ተናገረ",
+        "አለፈ",
+        "ቆመ",
+        "ጀመረ",
+        "ጨረሰ",
+        "ተመለሰ",
+        "ፈለገ",
+        "አገኘ",
+        "ሞከረ",
+        "ቻለ",
+        "ሞተ",
+        "እና",
+        "ወይም",
+        "ግን",
+        "ስለዚህ",
+        "ምክንያቱም",
+        "እንዲሁም",
+        "አሁን",
+        "ከዚያ",
+        "እዚህ",
+        "እዚያ",
+        "ዛሬ",
+        "ትናንት",
+        "ነገ",
+        "ብዙ",
+        "ትንሽ",
+        "ሁሉ",
+        "አንድ",
+        "ሁለት",
+        "ሦስት",
+        "አራት",
+        "አምስት",
+        "ስድስት",
+        "ሰባት",
+        "ስምንት",
+        "ዘጠኝ",
+        "አስር",
+        "ሰው",
+        "ልጅ",
+        "ሴት",
+        "ወንድ",
+        "ቤት",
+        "ስም",
+        "ጊዜ",
+        "ቀን",
+        "ዓመት",
+        "ወር",
+        "ሥራ",
+        "ገንዘብ",
+        "ምግብ",
+        "ውሃ",
+        "አገር",
+        "ከተማ",
+        "መንገድ",
+        "ትምህርት",
+        "መጽሐፍ",
+        "ቋንቋ",
+        "ቤተሰብ",
+        "ወዳጅ",
+        "ፍቅር",
+        "ሰላም",
+        "ችግር",
+        "መልስ",
+        "ጥያቄ",
+        "ምክር",
+        "ሐሳብ",
+        "ፈቃድ",
+        "እርዳታ",
+        "እኔ",
+        "አንተ",
+        "እሱ",
+        "እሷ",
+        "እኛ",
+        "እናንተ",
+        "እነሱ",
+        "የእኔ",
+        "የአንተ",
+        "የእሱ",
+        "ጥሩ",
+        "መጥፎ",
+        "ትልቅ",
+        "ትንሽ",
+        "አዲስ",
+        "ያረጀ",
+        "ፈጣን",
+        "ዝግተኛ",
+        "ቀላል",
+        "ከባድ",
+    ]
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # __init__
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def __init__(self, root, language_manager: LanguageManager, word_bank_path=None):
+        super().__init__()
+        if not root:
+            warnings.warn(
+                "attempted to create TypingTestMenu with none root, menu not created"
+            )
+            return
+        if not language_manager:
+            warnings.warn(
+                "attempted to create TypingTestMenu with none language_manager, "
+                "menu not created"
+            )
+            return
+
+        self.root = root
+        self.language_manager = language_manager
+        self.on_back_button_pressed = signal(f"on back button pressed {self}")
+
+        self._word_bank = self._load_word_bank(word_bank_path)
+
+        # ── typing-test state ──────────────────────────────────────────────
+        self._words: list = []
+        self._committed: list = []  # list[bool]
+        self._current_word_idx: int = 0
+        self._current_typed: str = ""
+        self._start_time = None
+        self._running: bool = False
+        self._timer_thread = None
+        self._test_duration: int = 30
+        self._time_left: float = 30.0
+        self._wpm: int = 0
+        self._acc: int = 100
+        self._finished: bool = False
+
+        # ── test-view widget references ────────────────────────────────────
+        self.main_frame = None
+        self.header_frame = None
+        self.back_button = None
+        self.title_label = None
+        self.control_bar = None
+        self.time_label = None
+        self.stat_label = None
+        self._dur_buttons: dict = {}
+        self.text_canvas = None
+        self.input_field = None
+        self._input_var = None
+        self.wpm_label = None
+        self.acc_label = None
+        self.restart_btn = None
+        self._analytics_btn = None  # NEW – header shortcut to analytics
+
+        # ── result overlay ─────────────────────────────────────────────────
+        self._result_overlay = None
+        self._result_wpm_val = None
+        self._result_acc_val = None
+
+        # ── analytics overlay (built lazily) ──────────────────────────────
+        self._analytics_frame = None
+        self._graph_canvas = None  # raw tk.Canvas
+        self._y_var = None  # StringVar: WPM | Accuracy
+        self._period_var = None  # StringVar: Hour | Day | Week | Month | Year
+        self._stat_var = None  # StringVar: Average | Best | Worst | Count
+        self._stat_val_label = None
+        self._date_var = None  # StringVar: specific date filter
+        self._date_menu = None
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Menu protocol
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def open_menu(self):
+        self._init_db()  # ensure DB exists
+        if not self.main_frame:
+            self.main_frame = CTkFrame(self.root, fg_color="transparent")
+            self._build_ui()
+
+        self.main_frame.pack(expand=True, fill="both")
+        self._new_test()
+        self.root.update_idletasks()
+
+    def close_menu(self):
+        self._running = False
+        if self.main_frame:
+            self.main_frame.pack_forget()
+        self.root.update_idletasks()
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Build – test view
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def _build_ui(self):
+        self._build_header()
+        self._build_control_bar()
+        self._build_text_area()
+        self._build_input_area()
+        self._build_stats_bar()
+        self._build_result_overlay()
+        # analytics frame is built lazily in _show_analytics()
+
+    # ── Header: back button + title + analytics shortcut ──────────────────────
+
+    def _build_header(self):
+        if not self.header_frame:
+            self.header_frame = CTkFrame(self.main_frame, fg_color="transparent")
+            self.header_frame.pack(fill="x", side="top")
+
+        back_black_icon_path = (
+            pathlib.Path(__file__).parent.parent
+            / "assets"
+            / "images"
+            / "icons"
+            / "back_icon_black.png"
+        )
+        back_white_icon_path = (
+            pathlib.Path(__file__).parent.parent
+            / "assets"
+            / "images"
+            / "icons"
+            / "back_icon_white.png"
+        )
+
+        if not self.back_button:
+            self.back_button = ImageButton(
+                self.header_frame,
+                light_image_path=back_black_icon_path,
+                dark_image_path=back_white_icon_path,
+                sizex=30,
+                sizey=30,
+                size_change_amount=1,
+            )
+            self.back_button.pack(side="left", pady=10, padx=10)
+            self.back_button.on_mouse_click.connect(self._on_back_icon_pressed)
+
+        if not self.title_label:
+            self.title_label = CTkLabel(self.header_frame, text="", font=("Roboto", 25))
+            self.language_manager.register_widget(self.title_label, "typing_test_title")
+            self.title_label.pack(side="left", pady=10, padx=4)
+
+        if not self._analytics_btn:
+            self._analytics_btn = CTkButton(
+                self.header_frame,
+                text="",
+                width=95,
+                height=30,
+                font=("Roboto", 13),
+                command=self._show_analytics,
+            )
+            self.language_manager.register_widget(self._analytics_btn, "analytics_btn")
+            self._analytics_btn.pack(side="right", padx=10, pady=10)
+
+    # ── Input area ─────────────────────────────────────────────────────────────
+
+    def _build_input_area(self):
+        input_frame = CTkFrame(self.main_frame, fg_color="transparent")
+        input_frame.pack(fill="x", padx=10, pady=50)
+
+        self._input_var = StringVar()
+        self._input_var.trace_add("write", self._on_input_change)
+
+        self.input_field = CTkEntry(
+            input_frame,
+            textvariable=self._input_var,
+            font=("Courier New", 17, "bold"),
+            height=44,
+            placeholder_text="",
+        )
+        self.input_field.pack(fill="x")
+        self.input_field.bind("<KeyRelease>", self._on_key_release)
+
+    # ── Stats bar ──────────────────────────────────────────────────────────────
+
+    def _build_stats_bar(self):
+        stats_frame = CTkFrame(self.main_frame, fg_color="transparent")
+        stats_frame.pack(fill="x", padx=10, pady=5)
+
+        self.wpm_label = CTkLabel(stats_frame, text="", font=("Roboto", 14, "bold"))
+        self.language_manager.register_widget(self.wpm_label, "typing_wpm_live")
+        self.wpm_label.pack(side="left", padx=(0, 16))
+
+        self.acc_label = CTkLabel(stats_frame, text="", font=("Roboto", 14, "bold"))
+        self.language_manager.register_widget(self.acc_label, "typing_acc_live")
+        self.acc_label.pack(side="left")
+
+        self.restart_btn = CTkButton(
+            stats_frame,
+            text="",
+            width=110,
+            height=34,
+            font=("Roboto", 14),
+            command=self._new_test,
+        )
+        self.language_manager.register_widget(self.restart_btn, "typing_restart")
+        self.restart_btn.pack(side="right")
+
+    # ── Result overlay ─────────────────────────────────────────────────────────
+
+    def _build_result_overlay(self):
+        """Card placed with place() over the centre of main_frame."""
+        self._result_overlay = CTkFrame(
+            self.main_frame,
+            corner_radius=16,
+            border_width=2,
+        )
+
+        self._result_title_lbl = CTkLabel(
+            self._result_overlay, text="", font=("Roboto", 18, "bold")
+        )
+        self.language_manager.register_widget(
+            self._result_title_lbl, "typing_test_complete"
+        )
+        self._result_title_lbl.pack(pady=(24, 6))
+
+        stats_inner = CTkFrame(self._result_overlay)
+        stats_inner.pack(padx=24, pady=8, fill="x")
+        stats_inner.grid_columnconfigure(0, weight=1, minsize=120)
+        stats_inner.grid_columnconfigure(1, weight=1, minsize=120)
+
+        wpm_hdr = CTkLabel(stats_inner, text="", font=("Roboto", 13))
+        self.language_manager.register_widget(wpm_hdr, "typing_wpm")
+        wpm_hdr.grid(row=0, column=0, pady=(16, 2), padx=16)
+
+        acc_hdr = CTkLabel(stats_inner, text="", font=("Roboto", 13))
+        self.language_manager.register_widget(acc_hdr, "typing_accuracy")
+        acc_hdr.grid(row=0, column=1, pady=(16, 2), padx=16)
+
+        self._result_wpm_val = CTkLabel(
+            stats_inner, text="—", font=("Roboto", 52, "bold")
+        )
+        self._result_wpm_val.grid(row=1, column=0, pady=(0, 16), padx=16)
+
+        self._result_acc_val = CTkLabel(
+            stats_inner, text="—", font=("Roboto", 52, "bold")
+        )
+        self._result_acc_val.grid(row=1, column=1, pady=(0, 16), padx=16)
+
+        try_again_btn = CTkButton(
+            self._result_overlay,
+            text="",
+            font=("Roboto", 15),
+            height=40,
+            command=self._new_test,
+        )
+        self.language_manager.register_widget(try_again_btn, "typing_try_again")
+        try_again_btn.pack(pady=(6, 22), padx=30, fill="x")
+
+    def _show_result_overlay(self):
+        self._result_overlay.place(relx=0.5, rely=0.5, anchor="center")
+        self._result_overlay.lift()
+
+    def _hide_result_overlay(self):
+        self._result_overlay.place_forget()
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Test logic
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def _new_test(self):
+        self._finished = False
+        self._running = False
+        self._start_time = None
+        self._time_left = float(self._test_duration)
+        self._committed = []
+        self._current_word_idx = 0
+        self._current_typed = ""
+        self._wpm = 0
+        self._acc = 100
+        self._words = random.choices(self._word_bank, k=70)
+
+        self._hide_result_overlay()
+        self._render_text()
+        self._input_var.set("")
+        self.input_field.configure(
+            state="normal",
+            placeholder_text=self.language_manager.translate("typing_placeholder")
+            or "",
+        )
+        self.input_field.focus()
+        self.stat_label.configure(text=str(self._test_duration))
+        self.wpm_label.configure(
+            text=self.language_manager.translate("typing_wpm_live") or "WPM: —"
+        )
+        self.acc_label.configure(
+            text=self.language_manager.translate("typing_acc_live") or "Accuracy: —%"
+        )
+        self._update_dur_buttons(self._test_duration)
+
+    def _set_duration(self, dur: int):
+        self._test_duration = dur
+        self._update_dur_buttons(dur)
+        self._new_test()
+
+    def _update_dur_buttons(self, active: int):
+        for dur, btn in self._dur_buttons.items():
+            if dur == active:
+                btn.configure(fg_color=("#1f6aa5", "#1f6aa5"))
+            else:
+                btn.configure(fg_color=("gray75", "gray25"))
+
+    # ── Input handlers ─────────────────────────────────────────────────────────
+
+    def _on_input_change(self, *_):
+        if self._finished:
+            return
+        value = self._input_var.get()
+        if value.endswith(" ") or value.endswith("\u00a0"):
+            self._commit_word(value.rstrip())
+            return
+        self._current_typed = value
+        if self._current_typed and not self._running:
+            self._start_timer()
+        self._render_text()
+
+    def _on_key_release(self, _event):
+        if self._finished:
+            return
+        value = self._input_var.get()
+        if value.endswith(" ") or value.endswith("\u00a0"):
+            self._commit_word(value.rstrip())
+            return
+        self._current_typed = value
+        self._render_text()
+
+    def _commit_word(self, typed: str):
+        if self._finished:
+            return
+        typed = typed.strip()
+        if not typed:
+            self._input_var.set("")
+            return
+
+        expected = self._words[self._current_word_idx]
+        self._committed.append(typed == expected)
+        self._current_word_idx += 1
+        self._current_typed = ""
+        self._input_var.set("")
+        self.input_field.after(
+            0,
+            lambda: (
+                self.input_field.delete(0, "end")
+                if self.input_field.winfo_exists()
+                else None
+            ),
+        )
+
+        if not self._running:
+            self._start_timer()
+
+        self._render_text()
+        self._update_stats()
+
+        if self._current_word_idx >= len(self._words):
+            self._finish()
+
+    def _on_back_icon_pressed(self, sender):
+        self.on_back_button_pressed.send(self)
+
+    # ── Timer ──────────────────────────────────────────────────────────────────
+
+    def _start_timer(self):
+        self._running = True
+        self._start_time = time.time()
+        self._timer_thread = threading.Thread(target=self._timer_loop, daemon=True)
+        self._timer_thread.start()
+
+    def _timer_loop(self):
+        while self._running:
+            elapsed = time.time() - self._start_time
+            self._time_left = max(0.0, self._test_duration - elapsed)
+            remaining = int(self._time_left) + (1 if self._time_left > 0 else 0)
+            if self.stat_label.winfo_exists():
+                self.stat_label.after(
+                    0,
+                    lambda r=remaining: self.stat_label.configure(text=str(r)),
+                )
+            self._update_stats()
+            if self._time_left <= 0:
+                self._running = False
+                self.stat_label.after(0, self._finish)
+                break
+            time.sleep(0.1)
+
+    # ── Stats ──────────────────────────────────────────────────────────────────
+
+    def _update_stats(self):
+        if self._start_time is None:
+            return
+        elapsed = time.time() - self._start_time
+        if elapsed < 0.3:
+            return
+        n = len(self._committed)
+        total_chars = sum(len(self._words[i]) for i in range(n))
+        correct_chars = sum(
+            len(self._words[i]) for i, ok in enumerate(self._committed) if ok
+        )
+        wpm = int((correct_chars / 5) / (elapsed / 60))
+        acc = int((correct_chars / total_chars) * 100) if total_chars else 100
+        self._wpm = wpm
+        self._acc = acc
+
+        wpm_tpl = (
+            self.language_manager.translate("typing_wpm_live_value") or "WPM: {wpm}"
+        )
+        acc_tpl = (
+            self.language_manager.translate("typing_acc_live_value")
+            or "Accuracy: {acc}%"
+        )
+        self.wpm_label.after(
+            0, lambda: self.wpm_label.configure(text=wpm_tpl.format(wpm=wpm))
+        )
+        self.acc_label.after(
+            0, lambda: self.acc_label.configure(text=acc_tpl.format(acc=acc))
+        )
+
+    # ── Render ─────────────────────────────────────────────────────────────────
+
+    def _theme_colors(self):
+        mode = ctk.get_appearance_mode()
+        if mode == "Dark":
+            return self._UNTYPED_DARK, self._ACTIVE_FG_D, self._ACTIVE_BG_D
+        return self._UNTYPED_LITE, self._ACTIVE_FG_L, self._ACTIVE_BG_L
+
+    def _render_text(self):
+        untyped, active_fg, active_bg = self._theme_colors()
+        tb = self.text_canvas
+        tb.configure(state="normal")
+        tb.delete("1.0", "end")
+
+        tb.tag_config("correct_word", foreground=self._CORRECT_W)
+        tb.tag_config("incorrect_word", foreground=self._INCORRECT_W)
+        tb.tag_config("untyped", foreground=untyped)
+        tb.tag_config("cur_ok", foreground=self._CORRECT_C)
+        tb.tag_config("cur_err", foreground=self._INCORRECT_C)
+        tb.tag_config("cur_untyped", foreground=active_fg)
+        tb.tag_config("active_bg", background=active_bg)
+        tb.tag_config("caret", foreground=self._CARET_FG, background=self._CARET_BG)
+
+        typed = self._current_typed
+
+        for w_idx, word in enumerate(self._words):
+            if w_idx > 0:
+                tb.insert("end", " ", "untyped")
+
+            if w_idx < len(self._committed):
+                tag = "correct_word" if self._committed[w_idx] else "incorrect_word"
+                tb.insert("end", word, tag)
+
+            elif w_idx == self._current_word_idx:
+                for c_idx, ch in enumerate(word):
+                    if c_idx < len(typed):
+                        tag = "cur_ok" if typed[c_idx] == ch else "cur_err"
+                        tb.insert("end", ch, (tag, "active_bg"))
+                    elif c_idx == len(typed):
+                        tb.insert("end", ch, ("caret",))
+                    else:
+                        tb.insert("end", ch, ("cur_untyped", "active_bg"))
+
+                if len(typed) >= len(word):
+                    tb.insert("end", " ", ("caret",))
+                    for ex in typed[len(word) :]:
+                        tb.insert("end", ex, ("cur_err", "active_bg"))
+            else:
+                tb.insert("end", word, "untyped")
+
+        chars_before = sum(
+            len(self._words[i]) + 1 for i in range(self._current_word_idx)
+        )
+        try:
+            tb.see(f"1.0 + {chars_before} chars")
+        except Exception:
+            pass
+
+        tb.configure(state="disabled")
+
+    # ── Finish (saves result to DB) ────────────────────────────────────────────
+
+    def _finish(self):
+        if self._finished:
+            return
+        self._finished = True
+        self._running = False
+        self._update_stats()
+        self.input_field.configure(state="disabled")
+        self._result_wpm_val.configure(text=str(self._wpm))
+        self._result_acc_val.configure(text=f"{self._acc}%")
+        self._save_result(self._wpm, self._acc, self._test_duration)  # ← persists
+        self._show_result_overlay()
+
+    # ── Word bank loader ───────────────────────────────────────────────────────
+
+    @staticmethod
+    def _load_word_bank(json_path) -> list:
+        """
+        Accepts two JSON formats:
+            ["word1", "word2", ...]
+            {"words": ["word1", "word2", ...]}
+        Falls back to the built-in list on any error.
+        """
+        if json_path is None:
+            return TypingTestMenu._DEFAULT_WORDS
+        path = pathlib.Path(json_path)
+        if not path.exists():
+            warnings.warn(
+                f"TypingTestMenu: word bank not found at {path}, "
+                "using built-in words"
+            )
+            return TypingTestMenu._DEFAULT_WORDS
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                return [str(w) for w in data if w]
+            if isinstance(data, dict) and "words" in data:
+                return [str(w) for w in data["words"] if w]
+            warnings.warn(
+                "TypingTestMenu: unexpected word bank format, using built-in words"
+            )
+        except Exception as exc:
+            warnings.warn(
+                f"TypingTestMenu: failed to load word bank ({exc}), "
+                "using built-in words"
+            )
+        return TypingTestMenu._DEFAULT_WORDS
+
+    # =========================================================================
+    # DATABASE
+    # =========================================================================
+
+    @staticmethod
+    def _db_path() -> pathlib.Path:
+        """Return path to the SQLite file, creating the data/ folder if needed."""
+        d = pathlib.Path(__file__).parent.parent / "data"
+        d.mkdir(parents=True, exist_ok=True)
+        return d / TypingTestMenu._DB_NAME
+
+    def _init_db(self):
+        """Create the results table if it doesn't already exist."""
+        try:
+            with sqlite3.connect(str(self._db_path())) as conn:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS results (
+                        id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                        ts       REAL    NOT NULL,
+                        wpm      INTEGER NOT NULL,
+                        accuracy INTEGER NOT NULL,
+                        duration INTEGER NOT NULL
+                    )
+                    """)
+        except Exception as exc:
+            warnings.warn(f"TypingTestMenu: could not init DB ({exc})")
+
+    def _save_result(self, wpm: int, acc: int, duration: int):
+        """Persist a completed test to the database."""
+        try:
+            with sqlite3.connect(str(self._db_path())) as conn:
+                conn.execute(
+                    "INSERT INTO results (ts, wpm, accuracy, duration) "
+                    "VALUES (?, ?, ?, ?)",
+                    (time.time(), wpm, acc, duration),
+                )
+        except Exception as exc:
+            warnings.warn(f"TypingTestMenu: could not save result ({exc})")
+
+    def _load_results(self, period: str) -> list:
+        delta = self._PERIOD_SECONDS.get(period, 86_400)
+        since = time.time() - delta
+
+        date_filter = self._date_var.get() if self._date_var else "All"
+
+        try:
+            with sqlite3.connect(str(self._db_path())) as conn:
+                if date_filter == "All":
+                    return conn.execute(
+                        "SELECT ts, wpm, accuracy FROM results "
+                        "WHERE ts >= ? ORDER BY ts ASC",
+                        (since,),
+                    ).fetchall()
+                else:
+                    # parse the selected date and get midnight-to-midnight bounds
+                    day = datetime.datetime.strptime(date_filter, "%Y-%m-%d")
+                    day_start = day.replace(hour=0, minute=0, second=0).timestamp()
+                    day_end = day.replace(hour=23, minute=59, second=59).timestamp()
+                    return conn.execute(
+                        "SELECT ts, wpm, accuracy FROM results "
+                        "WHERE ts BETWEEN ? AND ? ORDER BY ts ASC",
+                        (day_start, day_end),
+                    ).fetchall()
+        except Exception as exc:
+            warnings.warn(f"TypingTestMenu: could not load results ({exc})")
+            return []
+
+    # =========================================================================
+    # ANALYTICS VIEW
+    # =========================================================================
+
+    def _get_recorded_dates(self) -> list:
+        """Return a sorted list of date strings ('YYYY-MM-DD') that have recorded tests, plus 'All'."""
+        try:
+            with sqlite3.connect(str(self._db_path())) as conn:
+                rows = conn.execute(
+                    "SELECT ts FROM results ORDER BY ts DESC"
+                ).fetchall()
+            dates = sorted(
+                {
+                    datetime.datetime.fromtimestamp(r[0]).strftime("%Y-%m-%d")
+                    for r in rows
+                },
+                reverse=True,
+            )
+            return ["All"] + dates
+        except Exception as exc:
+            warnings.warn(f"TypingTestMenu: could not load dates ({exc})")
+            return ["All"]
+
+    def _refresh_date_dropdown(self):
+        """Repopulate the date dropdown with currently recorded dates."""
+        if self._date_menu is None:
+            return
+        dates = self._get_recorded_dates()
+        self._date_menu.configure(values=dates)
+        if self._date_var.get() not in dates:
+            self._date_var.set(dates[0])
+        # ── Show / hide ────────────────────────────────────────────────────────────
+
+    def _show_analytics(self):
+        if self._analytics_frame is None:
+            self._build_analytics_view()
+        self._refresh_date_dropdown()  # <-- sync dates with DB
+        self._analytics_frame.place(x=0, y=0, relwidth=1, relheight=1)
+        self._analytics_frame.lift()
+        self.root.after(80, self._update_analytics)
+
+    def _hide_analytics(self):
+        if self._analytics_frame:
+            self._analytics_frame.place_forget()
+
+    # ── Build ──────────────────────────────────────────────────────────────────
+
+    def _build_analytics_view(self):
+        self._analytics_frame = CTkFrame(
+            self.main_frame, corner_radius=0, fg_color="transparent"
+        )
+
+        # ── header ────────────────────────────────────────────────────────
+        hdr = CTkFrame(self._analytics_frame, fg_color="transparent")
+        hdr.pack(fill="x", side="top")
+
+        back_btn = CTkButton(
+            hdr,
+            text="",
+            width=80,
+            height=30,
+            font=("Roboto", 13),
+            command=self._hide_analytics,
+        )
+        self.language_manager.register_widget(back_btn, "analytics_back_btn")
+        back_btn.pack(side="left", padx=10, pady=10)
+
+        analytics_title_lbl = CTkLabel(hdr, text="", font=("Roboto", 25))
+        self.language_manager.register_widget(analytics_title_lbl, "analytics_title")
+        analytics_title_lbl.pack(side="left", padx=4, pady=10)
+
+        # ── control bar ───────────────────────────────────────────────────
+        ctrl = CTkFrame(self._analytics_frame, fg_color="transparent")
+        ctrl.pack(fill="x", padx=10, pady=(0, 6))
+
+        yaxis_lbl = CTkLabel(ctrl, text="", font=("Roboto", 13))
+        self.language_manager.register_widget(yaxis_lbl, "analytics_yaxis_label")
+        yaxis_lbl.pack(side="left", padx=(0, 4))
+
+        self._y_var = StringVar(value="WPM")
+        CTkOptionMenu(
+            ctrl,
+            variable=self._y_var,
+            values=self._YAXIS_OPTIONS,
+            width=115,
+            font=("Roboto", 13),
+            command=lambda _: self._update_analytics(),
+        ).pack(side="left", padx=(0, 18))
+
+        period_lbl = CTkLabel(ctrl, text="", font=("Roboto", 13))
+        self.language_manager.register_widget(period_lbl, "analytics_period_label")
+        period_lbl.pack(side="left", padx=(0, 4))
+
+        self._period_var = StringVar(value="Day")
+        CTkOptionMenu(
+            ctrl,
+            variable=self._period_var,
+            values=self._PERIOD_OPTIONS,
+            width=105,
+            font=("Roboto", 13),
+            command=lambda _: self._update_analytics(),
+        ).pack(side="left", padx=(0, 18))
+
+        stat_lbl = CTkLabel(ctrl, text="", font=("Roboto", 13))
+        self.language_manager.register_widget(stat_lbl, "analytics_stat_label")
+        stat_lbl.pack(side="left", padx=(0, 4))
+
+        self._stat_var = StringVar(value="Average")
+        CTkOptionMenu(
+            ctrl,
+            variable=self._stat_var,
+            values=self._STAT_OPTIONS,
+            width=115,
+            font=("Roboto", 13),
+            command=lambda _: self._update_stat_display(),
+        ).pack(side="left", padx=(0, 18))
+
+        # ── date filter ───────────────────────────────────────────────────
+        ctrl2 = CTkFrame(self._analytics_frame, fg_color="transparent")
+        ctrl2.pack(fill="x", padx=10, pady=(0, 6))
+
+        date_lbl = CTkLabel(ctrl2, text="", font=("Roboto", 13))
+        self.language_manager.register_widget(date_lbl, "analytics_date_label")
+        date_lbl.pack(side="left", padx=(0, 4))
+
+        self._date_var = StringVar(value="All")
+        self._date_menu = CTkOptionMenu(
+            ctrl2,
+            variable=self._date_var,
+            values=self._get_recorded_dates(),
+            width=150,
+            font=("Roboto", 13),
+            command=lambda _: self._update_analytics(),
+        )
+        self._date_menu.pack(side="left")
+
+        # ── graph area ────────────────────────────────────────────────────
+        graph_frame = CTkFrame(self._analytics_frame, corner_radius=10)
+        graph_frame.pack(fill="both", expand=True, padx=10, pady=(0, 4))
+
+        self._graph_canvas = tk.Canvas(graph_frame, highlightthickness=0)
+        self._graph_canvas.pack(fill="both", expand=True, padx=4, pady=4)
+        self._graph_canvas.bind("<Configure>", lambda _e: self._draw_graph())
+
+        # ── stat summary row ──────────────────────────────────────────────
+        stat_frame = CTkFrame(self._analytics_frame, fg_color="transparent")
+        stat_frame.pack(fill="x", padx=10, pady=(2, 10))
+
+        self._stat_val_label = CTkLabel(
+            stat_frame,
+            text=self.language_manager.translate("analytics_complete_a_test")
+            or "Complete a test to see analytics.",
+            font=("Roboto", 14, "bold"),
+        )
+        self._stat_val_label.pack(pady=5)
+
+    def _update_stat_display(self):
+        """Compute and show the selected stat for the current period."""
+        if self._stat_val_label is None:
+            return
+
+        period = self._period_var.get()
+        stat = self._stat_var.get()
+        rows = self._load_results(period)
+
+        if not rows:
+            self._stat_val_label.configure(
+                text=f"No tests recorded in this {period.lower()}."
+            )
+            return
+
+        n = len(rows)
+        wpms = [r[1] for r in rows]
+        accs = [r[2] for r in rows]
+
+        if stat == "Average":
+            w = int(sum(wpms) / n)
+            a = int(sum(accs) / n)
+            text = f"Avg WPM: {w}  •  Avg Accuracy: {a}%  •  Tests: {n}"
+        elif stat == "Best":
+            text = (
+                f"Best WPM: {max(wpms)}  •  "
+                f"Best Accuracy: {max(accs)}%  •  Tests: {n}"
+            )
+        elif stat == "Worst":
+            text = (
+                f"Worst WPM: {min(wpms)}  •  "
+                f"Worst Accuracy: {min(accs)}%  •  Tests: {n}"
+            )
+        elif stat == "Count":
+            text = f"Tests completed this {period.lower()}: {n}"
+        else:
+            text = ""
+
+        self._stat_val_label.configure(text=text)
+
+    def _build_control_bar(self):
+        if not self.control_bar:
+            self.control_bar = CTkFrame(self.main_frame, fg_color="transparent")
+            self.control_bar.pack(fill="x", padx=10, pady=(0, 8))
+
+        self.stat_label = CTkLabel(
+            self.control_bar,
+            text=str(self._test_duration),
+            font=("Roboto", 34, "bold"),
+        )
+        self.stat_label.pack(side="right", padx=16)
+
+        centre_group = CTkFrame(self.control_bar, fg_color="transparent")
+        centre_group.pack(side="left", expand=True)
+
+        self.time_label = CTkLabel(centre_group, text="", font=("Roboto", 13))
+        self.language_manager.register_widget(self.time_label, "typing_time_label")
+        self.time_label.pack(side="left", padx=(0, 6))
+
+        for dur in [15, 30, 60, 120]:
+            b = CTkButton(
+                centre_group,
+                text=f"{dur}s",
+                width=52,
+                height=30,
+                font=("Roboto", 13),
+                command=lambda d=dur: self._set_duration(d),
+            )
+            b.pack(side="left", padx=3)
+            self._dur_buttons[dur] = b
+
+    def _build_text_area(self):
+        text_frame = CTkFrame(self.main_frame, corner_radius=10)
+        text_frame.pack(fill="x", padx=10, pady=(0, 5))
+
+        self.text_canvas = CTkTextbox(
+            text_frame,
+            font=("Courier New", 22, "bold"),
+            wrap="word",
+            state="disabled",
+            height=180,
+            border_width=0,
+        )
+        self.text_canvas.pack(fill="both", expand=True, padx=6, pady=6)
+        # ── Graph drawing ──────────────────────────────────────────────────────────
+
+    def _update_analytics(self):
+        """Redraw the graph and refresh the stat summary."""
+        self._draw_graph()
+        self._update_stat_display()
+
+    @staticmethod
+    def _format_ts(ts: float, period: str) -> str:
+        """Return a short label for a Unix timestamp given the active period."""
+        dt = datetime.datetime.fromtimestamp(ts)
+        if period in ("Hour", "Day"):
+            return dt.strftime("%H:%M")
+        if period == "Week":
+            return dt.strftime("%a %d")
+        if period == "Month":
+            return dt.strftime("%b %d")
+        if period == "Year":
+            return dt.strftime("%b %Y")
+        return dt.strftime("%H:%M")
+
+    def _draw_graph(self):
+        c = self._graph_canvas
+        if c is None or not c.winfo_exists():
+            return
+        c.delete("all")
+
+        W = c.winfo_width()
+        H = c.winfo_height()
+        if W < 10 or H < 10:
+            return
+
+        # ── theme colours ──────────────────────────────────────────────
+        is_dark = ctk.get_appearance_mode() == "Dark"
+        bg = self._GRAPH_BG_D if is_dark else self._GRAPH_BG_L
+        ax = self._GRAPH_AXIS_D if is_dark else self._GRAPH_AXIS_L
+        grd = self._GRAPH_GRID_D if is_dark else self._GRAPH_GRID_L
+        txt = self._GRAPH_TXT_D if is_dark else self._GRAPH_TXT_L
+        pt = self._GRAPH_PT_D if is_dark else self._GRAPH_PT_L
+        ln = self._GRAPH_LN_D if is_dark else self._GRAPH_LN_L
+        av = self._GRAPH_AVG_D if is_dark else self._GRAPH_AVG_L
+
+        c.configure(bg=bg)
+
+        ml, mr, mt, mb = self._GRAPH_MARGIN
+        pw = W - ml - mr
+        ph = H - mt - mb
+        ox = ml
+        oy = H - mb
+
+        # ── data ───────────────────────────────────────────────────────
+        period = self._period_var.get()
+        y_axis = self._y_var.get()
+        rows = self._load_results(period)
+
+        # ── Y range ────────────────────────────────────────────────────
+        if y_axis == "Accuracy":
+            y_min, y_max = 0, 100
+        else:
+            if rows:
+                raw_max = max(r[1] for r in rows)
+                y_max = ((max(raw_max + 10, 50) + 9) // 10) * 10
+            else:
+                y_max = 100
+            y_min = 0
+
+        # ── X range ────────────────────────────────────────────────────
+        now = time.time()
+        delta = self._PERIOD_SECONDS.get(period, 86_400)
+        t_start = now - delta
+        t_end = now
+
+        # ── coordinate helpers ─────────────────────────────────────────
+        def to_cx(ts: float) -> float:
+            span = t_end - t_start
+            return ox + ((ts - t_start) / span if span else 0.5) * pw
+
+        def to_cy(val: float) -> float:
+            span = y_max - y_min
+            return oy - ((val - y_min) / span if span else 0.5) * ph
+
+        # ── grid lines ────────────────────────────────────────────────
+        N_Y, N_X = 5, 5
+        for i in range(N_Y + 1):
+            yp = oy - int(i * ph / N_Y)
+            c.create_line(ox, yp, ox + pw, yp, fill=grd, width=1)
+        for i in range(N_X + 1):
+            xp = ox + int(i * pw / N_X)
+            c.create_line(xp, mt, xp, oy, fill=grd, width=1)
+
+        # ── axes ──────────────────────────────────────────────────────
+        c.create_line(ox, mt, ox, oy + 1, fill=ax, width=2)
+        c.create_line(ox, oy, ox + pw, oy, fill=ax, width=2)
+
+        # ── Y-axis labels + title ──────────────────────────────────────
+        for i in range(N_Y + 1):
+            val = y_min + (y_max - y_min) * i / N_Y
+            yp = oy - int(i * ph / N_Y)
+            lbl = f"{int(val)}%" if y_axis == "Accuracy" else str(int(val))
+            c.create_text(
+                ox - 6, yp, text=lbl, fill=txt, anchor="e", font=("Roboto", 9)
+            )
+
+        y_title = "Accuracy %" if y_axis == "Accuracy" else "WPM"
+        c.create_text(
+            13,
+            mt + ph // 2,
+            text=y_title,
+            fill=txt,
+            font=("Roboto", 10, "bold"),
+            angle=90,
+        )
+
+        # ── X-axis labels ──────────────────────────────────────────────
+        for i in range(N_X + 1):
+            ts = t_start + i * (t_end - t_start) / N_X
+            xp = ox + int(i * pw / N_X)
+            lbl = self._format_ts(ts, period)
+            c.create_text(
+                xp, oy + 14, text=lbl, fill=txt, anchor="n", font=("Roboto", 8)
+            )
+
+        # ── no-data placeholder ────────────────────────────────────────
+        if not rows:
+            c.create_text(
+                ox + pw // 2,
+                mt + ph // 2,
+                text=self.language_manager.translate("analytics_no_data")
+                or (
+                    "No tests recorded in this period.\n"
+                    "Complete a test to populate the chart."
+                ),
+                fill=txt,
+                font=("Roboto", 12),
+                justify="center",
+            )
+            return
+
+        # ── connecting line ────────────────────────────────────────────
+        pts = []
+        for row in rows:
+            v = row[1] if y_axis == "WPM" else row[2]
+            pts += [to_cx(row[0]), to_cy(v)]
+        if len(pts) >= 4:
+            c.create_line(*pts, fill=ln, width=1.5, smooth=True)
+
+        # ── average reference line ─────────────────────────────────────
+        vals = [r[1] if y_axis == "WPM" else r[2] for r in rows]
+        avg_val = sum(vals) / len(vals)
+        avg_y = to_cy(avg_val)
+        avg_lbl = (
+            f"avg {int(avg_val)}%" if y_axis == "Accuracy" else f"avg {int(avg_val)}"
+        )
+        c.create_line(ox, avg_y, ox + pw, avg_y, fill=av, width=1, dash=(6, 4))
+        c.create_text(
+            ox + pw - 4,
+            avg_y - 8,
+            text=avg_lbl,
+            fill=av,
+            anchor="e",
+            font=("Roboto", 9, "bold"),
+        )
+        # ── best reference line ────────────────────────────────────────────
+        best_val = max(vals)
+        best_y = to_cy(best_val)
+        best_lbl = (
+            f"best {int(best_val)}%"
+            if y_axis == "Accuracy"
+            else f"best {int(best_val)}"
+        )
+        c.create_line(ox, best_y, ox + pw, best_y, fill="#22c55e", width=1, dash=(6, 4))
+        c.create_text(
+            ox + pw - 4,
+            best_y - 8,
+            text=best_lbl,
+            fill="#22c55e",
+            anchor="e",
+            font=("Roboto", 9, "bold"),
+        )
+
+        # ── worst reference line ───────────────────────────────────────────
+        worst_val = min(vals)
+        worst_y = to_cy(worst_val)
+        worst_lbl = (
+            f"worst {int(worst_val)}%"
+            if y_axis == "Accuracy"
+            else f"worst {int(worst_val)}"
+        )
+        c.create_line(
+            ox, worst_y, ox + pw, worst_y, fill="#ef4444", width=1, dash=(6, 4)
+        )
+        c.create_text(
+            ox + pw - 4,
+            worst_y - 8,
+            text=worst_lbl,
+            fill="#ef4444",
+            anchor="e",
+            font=("Roboto", 9, "bold"),
+        )
+        # ── data points ───────────────────────────────────────────────
+        r = self._GRAPH_PT_R
+        for row in rows:
+            v = row[1] if y_axis == "WPM" else row[2]
+            px = to_cx(row[0])
+            py = to_cy(v)
+            c.create_oval(
+                px - r,
+                py - r,
+                px + r,
+                py + r,
+                fill=pt,
+                outline="white",
+                width=1,
+            )

@@ -222,5 +222,34 @@
     "you find yourself driving the wrong direction on a highway! you must now dodge the incoming cars, using your keyboard":{
         "en":"you find yourself driving the wrong direction on a highway! you must now dodge the incoming cars, using your keyboard",
         "am":"በተጨናነቅ መንገድ ላይ በተቃራኒ መንገድ እየሄዱ ነው፤ እንዳይጋጩ ጹፍ በመጠቀም መኪናዎችን ይለፉ"
-    }
+    },
+    "analytics_title":{ 
+        "en": "Analytics",                         
+        "am": "ስታቲስቲክስ" 
+    },
+    "analytics_back_btn":{ 
+        "en": "Test",                             
+        "am": "ፈተና" },
+    "analytics_yaxis_label":{ 
+        "en": "Y-Axis:",                            
+        "am": "ቁልቁል ዘንግ:" },
+    "analytics_period_label":{ 
+        "en": "Period:",                            
+        "am": "ወቅት:" },
+    "analytics_stat_label":{ 
+        "en": "Stat:",                              
+        "am": "ስታቲስቲክስ:" },
+    "analytics_no_data":{ 
+        "en": "No tests recorded in this period.\nComplete a test to populate the chart.", 
+        "am": "በዚህ ወቅት ምንም ፈተና አልተመዘገበም።\nግራፉን ለመሙላት ፈተና ያጠናቅቁ።" },
+    "analytics_btn":{ 
+        "en": "Analytics",                          
+        "am": "ስታቲስቲክስ" },
+    "analytics_complete_a_test": { 
+        "en": "Complete a test to see analytics.",
+        "am": "ስታቲስቲክሱን ለማየት ፈተና ያጠናቅቁ።" 
+    },"analytics_date_label": { 
+        "en": "Date:",
+        "am": "ቀን:" }
+        
 }

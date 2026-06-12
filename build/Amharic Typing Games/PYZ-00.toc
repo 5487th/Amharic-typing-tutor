@@ -108,6 +108,14 @@
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\PIL\\ImageColor.py',
    'PYMODULE'),
+  ('PIL.ImageDraw',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\PIL\\ImageDraw.py',
+   'PYMODULE'),
+  ('PIL.ImageDraw2',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\PIL\\ImageDraw2.py',
+   'PYMODULE'),
   ('PIL.ImageEnhance',
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\PIL\\ImageEnhance.py',
@@ -119,6 +127,10 @@
   ('PIL.ImageFilter',
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\PIL\\ImageFilter.py',
+   'PYMODULE'),
+  ('PIL.ImageFont',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\PIL\\ImageFont.py',
    'PYMODULE'),
   ('PIL.ImageMath',
    'd:\\misc\\python projects\\Amharic typing '
@@ -136,6 +148,10 @@
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\PIL\\ImagePalette.py',
    'PYMODULE'),
+  ('PIL.ImagePath',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\PIL\\ImagePath.py',
+   'PYMODULE'),
   ('PIL.ImageQt',
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\PIL\\ImageQt.py',
@@ -151,6 +167,10 @@
   ('PIL.ImageStat',
    'd:\\misc\\python projects\\Amharic typing '
    'tutor\\.venv\\Lib\\site-packages\\PIL\\ImageStat.py',
+   'PYMODULE'),
+  ('PIL.ImageText',
+   'd:\\misc\\python projects\\Amharic typing '
+   'tutor\\.venv\\Lib\\site-packages\\PIL\\ImageText.py',
    'PYMODULE'),
   ('PIL.ImageTk',
    'd:\\misc\\python projects\\Amharic typing '
@@ -1980,6 +2000,9 @@
   ('scripts.custom_widgets',
    'D:\\misc\\python projects\\Amharic typing '
    'tutor\\scripts\\custom_widgets.py',
+   'PYMODULE'),
+  ('scripts.games',
+   'D:\\misc\\python projects\\Amharic typing tutor\\scripts\\games.py',
    'PYMODULE'),
   ('scripts.language_manager',
    'D:\\misc\\python projects\\Amharic typing '
