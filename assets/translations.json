@@ -250,6 +250,15 @@
         "am": "ስታቲስቲክሱን ለማየት ፈተና ያጠናቅቁ።" 
     },"analytics_date_label": { 
         "en": "Date:",
-        "am": "ቀን:" }
+        "am": "ቀን:" 
+    },
+    "Asteroid Belt":{
+        "en":"Asteroid Belt",
+        "am":"የአስተሮይድ ቀበቶ"
+    },
+    "you are piloting a space ship flying through an asteroid belt, quickly tpye out the words on the meteorites to destroy them":{
+        "en":"you are piloting a space ship flying through an asteroid belt, quickly tpye out the words on the meteorites to destroy them",
+        "am":"በአስተሮይድ ቀበቶ ወስጥ እያለፈ ያለ መንኮራኮር እየተቆጣጠሩ ነው፣ ጽሁፍ በመጠቀም አስተሮይዶኦችን ይስበሩ"
+    }
         
 }

@@ -630,6 +630,9 @@ class MainMenu(Menu):
         self.on_amharic_dodge_activity_card_icon_pressed = signal(
             f"on amharic dodge acvtivity icon button presed {self}"
         )
+        self.on_space_shooter_activity_card_icon_pressed = signal(
+            f"on space shooter acvtivity icon button presed {self}"
+        )
 
     def open_menu(self):
         if not self.user_manager.current_user:
@@ -950,6 +953,31 @@ class MainMenu(Menu):
         self.Amharic_dodge_game_activity_card.on_start_button_pressed.connect(
             self.on_Amharic_dodge_activity_button_pressed
         )
+        # -----------------------space shooter--------------------------
+        self.space_shooter_activity_card: ActivityCard = ActivityCard(
+            self.main_scrollable_frame,
+            str(
+                pathlib.Path(__file__).parent.parent
+                / "assets"
+                / "images"
+                / "space_shooter_icon.png"
+            ),
+            "Asteroid Belt",
+            "you are piloting a space ship flying through an asteroid belt, quickly tpye out the words on the meteorites to destroy them",
+        )
+        self.space_shooter_activity_card.pack()
+
+        self.language_manager.register_widget(
+            self.space_shooter_activity_card.tittle_label, "Asteroid Belt"
+        )
+        self.language_manager.register_widget(
+            self.space_shooter_activity_card.discription_label,
+            "you are piloting a space ship flying through an asteroid belt, quickly tpye out the words on the meteorites to destroy them",
+        )
+
+        self.space_shooter_activity_card.on_start_button_pressed.connect(
+            self.on_space_shooter_activity_button_pressed
+        )
 
     def on_typing_test_activity_button_pressed(self, sender):
         self.on_amharic_typing_test_activity_card_icon_pressed.send(self)
@@ -962,6 +990,12 @@ class MainMenu(Menu):
 
     def on_Amharic_dodge_activity_button_pressed(self, sender):
         self.on_amharic_dodge_activity_card_icon_pressed.send(self)
+
+    def on_Amharic_dodge_activity_button_pressed(self, sender):
+        self.on_amharic_dodge_activity_card_icon_pressed.send(self)
+
+    def on_space_shooter_activity_button_pressed(self, sender):
+        self.on_space_shooter_activity_card_icon_pressed.send(self)
 
 
 class ManualMenu(Menu):

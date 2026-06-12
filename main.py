@@ -10,6 +10,7 @@ from scripts.user_manager import UserManager
 from scripts.language_manager import LanguageManager
 from scripts.menus import *
 from scripts.games import *
+from scripts.games import AmharicSpaceShooterMenu
 from scripts.menu_connectors import *
 
 root = ctk.CTk()
@@ -39,11 +40,12 @@ amharic_typing_race.load_word_bank(str(amharic_word_bank))
 amharic_dodge_game_menu = AmharicDodgeMenu(root)
 amharic_dodge_game_menu.load_word_bank(amharic_word_bank)
 
+amharic_space_shooter_menu = AmharicSpaceShooterMenu()
+
 # entry menu
 login_menu.open_menu()
 
 # menu connectors
-
 login_to_signup_connector = LoginToSignupConnector(login_menu, signup_menu)
 login_to_main_menu_connector = LoginToMainMenuConnector(
     root, login_menu, main_menu, language_manager, user_manager
@@ -68,6 +70,9 @@ main_menu_to_amharic_race_menu = MainMenuToAmharicRaceGameMenu(
 )
 main_menu_to_amharic_dodge_menu = MainMenuToAmharicDodgeGameMenu(
     root, main_menu, amharic_dodge_game_menu
+)
+main_menu_to_space_shooter = MainMenuToSpaceShooterMenu(
+    root, main_menu, amharic_space_shooter_menu
 )
 
 

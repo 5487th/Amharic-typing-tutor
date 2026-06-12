@@ -354,3 +354,46 @@ class MainMenuToAmharicDodgeGameMenu:
     def on_back_button_pressed(self, sender):
         self.amharic_dodge_menu.close_menu()
         self.main_menu.open_menu()
+
+
+class MainMenuToSpaceShooterMenu:
+    def __init__(
+        self,
+        root,
+        main_menu: MainMenu,
+        space_shooter_menu: AmharicSpaceShooterMenu,
+    ):
+        if not root:
+            warnings.warn(
+                "attempted to create main menu to space shooter menu connection with none root, menu connector not created"
+            )
+            return
+        if not main_menu:
+            warnings.warn(
+                "attempted to create main menu to space shooter menu connection with none main menu, menu connector not created"
+            )
+            return
+        if not space_shooter_menu:
+            warnings.warn(
+                "attempted to create main menu to space shooter menu connection with none space shooter menu, menu connector not created"
+            )
+            return
+
+        self.main_menu: MainMenu = main_menu
+        self.space_shooter_menu: AmharicSpaceShooterMenu = space_shooter_menu
+        self.root = root
+
+        self.main_menu.on_space_shooter_activity_card_icon_pressed.connect(
+            self.on_space_shooter_button_pressed
+        )
+        self.space_shooter_menu.on_back_button_pressed.connect(
+            self.on_back_button_pressed
+        )
+
+    def on_space_shooter_button_pressed(self, sender):
+        self.main_menu.close_menu()
+        self.space_shooter_menu.open_menu(self.root)
+
+    def on_back_button_pressed(self, sender):
+        self.space_shooter_menu.close_menu()
+        self.main_menu.open_menu()

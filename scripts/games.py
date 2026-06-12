@@ -1,3 +1,4 @@
+from __future__ import annotations
 import sys, os
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -16,6 +17,9 @@ import math
 import tkinter as tk
 import sqlite3
 import datetime
+import pathlib
+import ctypes
+import subprocess
 
 try:
     import winsound as _winsound
@@ -5086,3 +5090,226 @@ class TypingTestMenu(Menu):
                 outline="white",
                 width=1,
             )
+
+
+class AmharicSpaceShooterMenu(Menu):
+    """Menu wrapper that runs the space-shooter exe in a managed subprocess."""
+
+    # ── class-level constants ──────────────────────────────────────────────────
+    # Adjust this path if you store the exe somewhere else.
+    # It is resolved relative to the project root (this file's grandparent dir).
+    EXE_RELATIVE_PATH: pathlib.Path = (
+        pathlib.Path(__file__).parent.parent / "assets" / "space_shooter_standalone.exe"
+    )
+
+    # How many times to retry finding the subprocess window before giving up.
+    _FIND_RETRIES: int = 20
+    # Milliseconds between retries (total budget ≈ 6 s).
+    _FIND_DELAY_MS: int = 300
+
+    # Win32 constants ──────────────────────────────────────────────────────────
+    _GWL_HWNDPARENT: int = -8  # SetWindowLongPtr index — sets the owner
+    _SW_MAXIMIZE: int = 3
+    _SWP_NOZORDER: int = 0x0004
+    _SWP_SHOWWINDOW: int = 0x0040
+
+    # ── init ──────────────────────────────────────────────────────────────────
+    def __init__(self) -> None:
+        # Unique signal name so multiple instances never cross-fire
+        self.on_back_button_pressed = signal(f"amharic_space_shooter_back_{id(self)}")
+        self._process: subprocess.Popen | None = None
+        self._root = None
+
+    # ── public menu protocol ──────────────────────────────────────────────────
+
+    def open_menu(self, root) -> None:
+        """
+        Snapshot launcher geometry → hide launcher → spawn exe →
+        warp the game window → monitor for exit.
+        """
+        self._root = root
+
+        # 1. Capture launcher geometry before it disappears
+        root.update_idletasks()
+        w = root.winfo_width()
+        h = root.winfo_height()
+        x = root.winfo_rootx()
+        y = root.winfo_rooty()
+        is_fullscreen = bool(root.attributes("-fullscreen"))
+        is_zoomed = root.state() == "zoomed"  # Windows maximised state
+        launcher_hwnd = root.winfo_id()  # native Win32 HWND
+
+        # 2. Hide the launcher — the tkinter event loop keeps running
+        root.withdraw()
+
+        # 3. Spawn the subprocess
+        try:
+            self._process = subprocess.Popen([str(self._resolve_exe())])
+        except (FileNotFoundError, OSError):
+            # Graceful recovery: show launcher and signal back
+            root.deiconify()
+            self.on_back_button_pressed.send(self)
+            return
+
+        # 4. Background daemon thread — waits for exit, then restores launcher
+        threading.Thread(
+            target=self._watch_process,
+            daemon=True,
+            name="SpaceShooterWatcher",
+        ).start()
+
+        # 5. Retry loop (on the tk event loop) to find & warp the game window
+        self._try_warp(
+            self._FIND_RETRIES,
+            w,
+            h,
+            x,
+            y,
+            is_fullscreen,
+            is_zoomed,
+            launcher_hwnd,
+        )
+
+    def close_menu(self) -> None:
+        """
+        Terminate the subprocess and restore the launcher.
+        Safe to call even if the process has already exited naturally.
+        """
+        if self._process and self._process.poll() is None:
+            self._process.terminate()
+        self._process = None
+        if self._root:
+            self._root.deiconify()
+            self._root.lift()
+
+    # ── internal ──────────────────────────────────────────────────────────────
+
+    def _resolve_exe(self) -> pathlib.Path:
+        """Return the absolute path to the exe."""
+        return pathlib.Path(__file__).parent.parent.parent / self.EXE_RELATIVE_PATH
+
+    # ── window discovery & warping ────────────────────────────────────────────
+
+    def _try_warp(
+        self,
+        retries: int,
+        w: int,
+        h: int,
+        x: int,
+        y: int,
+        is_fullscreen: bool,
+        is_zoomed: bool,
+        launcher_hwnd: int,
+    ) -> None:
+        """
+        Scheduled on the tkinter event loop.
+        Scans for the game window by PID; retries up to `retries` times.
+        """
+        if retries <= 0 or self._process is None:
+            return
+
+        hwnd = self._find_window_by_pid(self._process.pid)
+        if hwnd:
+            self._warp_window(hwnd, w, h, x, y, is_fullscreen, is_zoomed, launcher_hwnd)
+        else:
+            self._root.after(
+                self._FIND_DELAY_MS,
+                lambda: self._try_warp(
+                    retries - 1,
+                    w,
+                    h,
+                    x,
+                    y,
+                    is_fullscreen,
+                    is_zoomed,
+                    launcher_hwnd,
+                ),
+            )
+
+    @staticmethod
+    def _find_window_by_pid(target_pid: int) -> int | None:
+        """
+        Walk all top-level windows (EnumWindows) and return the HWND of the
+        first *visible* window whose owning process matches ``target_pid``.
+        """
+        found: list[int] = []
+
+        WNDENUMPROC = ctypes.WINFUNCTYPE(
+            ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p
+        )
+
+        def _cb(hwnd: int, _lparam: int) -> bool:
+            if ctypes.windll.user32.IsWindowVisible(hwnd):
+                pid_buf = ctypes.c_ulong()
+                ctypes.windll.user32.GetWindowThreadProcessId(
+                    hwnd, ctypes.byref(pid_buf)
+                )
+                if pid_buf.value == target_pid:
+                    found.append(hwnd)
+            return True
+
+        ctypes.windll.user32.EnumWindows(WNDENUMPROC(_cb), 0)
+        return found[0] if found else None
+
+    def _warp_window(
+        self,
+        hwnd: int,
+        w: int,
+        h: int,
+        x: int,
+        y: int,
+        is_fullscreen: bool,
+        is_zoomed: bool,
+        launcher_hwnd: int,
+    ) -> None:
+        """
+        Reposition / resize the game window and make it owned by the launcher.
+
+        Setting GWL_HWNDPARENT (-8) establishes *owner* relationship.
+        Windows groups owned top-level windows under their owner's taskbar
+        button — so the game and the launcher share the same taskbar entry.
+        """
+        u32 = ctypes.windll.user32
+
+        # Taskbar grouping: game window owned by the launcher
+        u32.SetWindowLongPtrW(hwnd, self._GWL_HWNDPARENT, launcher_hwnd)
+
+        if is_fullscreen or is_zoomed:
+            u32.ShowWindow(hwnd, self._SW_MAXIMIZE)
+        else:
+            u32.SetWindowPos(
+                hwnd,
+                0,  # hWndInsertAfter — ignored due to SWP_NOZORDER
+                x,
+                y,
+                w,
+                h,
+                self._SWP_NOZORDER | self._SWP_SHOWWINDOW,
+            )
+
+        u32.SetForegroundWindow(hwnd)
+        u32.BringWindowToTop(hwnd)
+
+    # ── process monitoring ────────────────────────────────────────────────────
+
+    def _watch_process(self) -> None:
+        """
+        Blocks on the background daemon thread until the subprocess exits,
+        then schedules ``_on_game_exited`` on the tkinter main thread.
+        Never touch tk widgets directly from here.
+        """
+        if self._process:
+            self._process.wait()
+        self._root.after(0, self._on_game_exited)
+
+    def _on_game_exited(self) -> None:
+        """
+        Called on the main tkinter thread.
+        Restores the launcher and fires ``on_back_button_pressed`` so the
+        connector can reopen the main menu.
+        """
+        self._process = None
+        self._root.deiconify()
+        self._root.lift()
+        self._root.focus_force()
+        self.on_back_button_pressed.send(self)
