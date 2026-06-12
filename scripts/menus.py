@@ -962,13 +962,13 @@ class MainMenu(Menu):
                 / "images"
                 / "space_shooter_icon.png"
             ),
-            "Asteroid Belt",
+            "Space shooter",
             "you are piloting a space ship flying through an asteroid belt, quickly tpye out the words on the meteorites to destroy them",
         )
         self.space_shooter_activity_card.pack()
 
         self.language_manager.register_widget(
-            self.space_shooter_activity_card.tittle_label, "Asteroid Belt"
+            self.space_shooter_activity_card.tittle_label, "Space Shooter"
         )
         self.language_manager.register_widget(
             self.space_shooter_activity_card.discription_label,

@@ -3931,6 +3931,10 @@
    'D:\\misc\\python projects\\Amharic typing '
    'tutor\\assets\\images\\icons\\settings_icon_white.png',
    'DATA'),
+  ('assets\\images\\space_shooter_icon.png',
+   'D:\\misc\\python projects\\Amharic typing '
+   'tutor\\assets\\images\\space_shooter_icon.png',
+   'DATA'),
   ('assets\\manual\\Amharic_Typing_Guide_amharic_version.pdf',
    'D:\\misc\\python projects\\Amharic typing '
    'tutor\\assets\\manual\\Amharic_Typing_Guide_amharic_version.pdf',
@@ -3947,6 +3951,10 @@
    'D:\\misc\\python projects\\Amharic typing '
    'tutor\\assets\\manual\\Amharic_Typing_Guide_english_version.pptx',
    'DATA'),
+  ('assets\\space_shooter_standalone.exe',
+   'D:\\misc\\python projects\\Amharic typing '
+   'tutor\\assets\\space_shooter_standalone.exe',
+   'BINARY'),
   ('assets\\translations.json',
    'D:\\misc\\python projects\\Amharic typing tutor\\assets\\translations.json',
    'DATA'),
@@ -4001,6 +4009,9 @@
   ('data\\profile_pictures\\ቆንጂቱ_profile_picture.png',
    'D:\\misc\\python projects\\Amharic typing '
    'tutor\\data\\profile_pictures\\ቆንጂቱ_profile_picture.png',
+   'DATA'),
+  ('data\\typing_results.db',
+   'D:\\misc\\python projects\\Amharic typing tutor\\data\\typing_results.db',
    'DATA'),
   ('data\\users.db',
    'D:\\misc\\python projects\\Amharic typing tutor\\data\\users.db',
